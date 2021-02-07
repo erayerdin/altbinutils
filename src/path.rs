@@ -1,4 +1,7 @@
-use std::{fs::File, path::PathBuf};
+use std::{
+    fs::{create_dir_all, File},
+    path::PathBuf,
+};
 
 use directories::ProjectDirs;
 use lazy_static::lazy_static;
@@ -52,13 +55,13 @@ impl Paths {
             debug!("Creating config file...");
             trace!("config file path: {}", path.to_string_lossy());
 
-            match File::create(path.clone()) {
-                Ok(_) => debug!("Created config file."),
-                Err(e) => {
-                    error!("Could not create config file.");
-                    error!("{}", e);
-                }
-            }
+            debug!("Creating parent path...");
+            let parent_path = path
+                .parent()
+                .expect("Could not get the parent path of config file.");
+            create_dir_all(parent_path).expect("Could not create parent paths.");
+
+            File::create(path.clone()).expect("Could not create config file.");
         }
 
         path
