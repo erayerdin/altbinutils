@@ -156,8 +156,6 @@ mod tests {
         match create {
             true => {
                 assert!(data_dir.exists());
-                // tidy up
-                remove_dir_all(data_dir).expect("Could not delete data directory.");
             }
             false => assert!(!data_dir.exists()),
         }
