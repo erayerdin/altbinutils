@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir, create_dir_all, File},
+    fs::{create_dir_all, File},
     path::PathBuf,
 };
 
@@ -92,7 +92,7 @@ impl Paths {
             debug!("Creating data directory...");
             trace!("data directory path: {}", path.to_string_lossy());
 
-            create_dir(path.clone()).expect("Could not create data directory.");
+            create_dir_all(path.clone()).expect("Could not create data directory.");
         }
 
         path
