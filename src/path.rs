@@ -24,3 +24,17 @@ lazy_static! {
     static ref PROJECT_DIRS: ProjectDirs = ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
         .expect("Could not initializer project directories.");
 }
+
+/// Paths of an app.
+pub struct Paths {
+    app_name: String,
+}
+
+impl Paths {
+    pub fn new(app_name: &str) -> Self {
+        debug!("Initializing Paths for {}...", app_name);
+        Self {
+            app_name: app_name.to_owned(),
+        }
+    }
+}
