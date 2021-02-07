@@ -1,3 +1,5 @@
+use std::{fs::File, path::PathBuf};
+
 use directories::ProjectDirs;
 use lazy_static::lazy_static;
 use log::*;
@@ -35,6 +37,57 @@ impl Paths {
         debug!("Initializing Paths for {}...", app_name);
         Self {
             app_name: app_name.to_owned(),
+        }
+    }
+
+    pub fn get_config_file(&self, create: bool) -> PathBuf {
+        debug!("Getting config file...");
+        trace!("app name: {}", self.app_name);
+        trace!("create: {}", create);
+
+        let mut path = PROJECT_DIRS.config_dir().to_path_buf();
+        path.push(format!("{}.config.toml", self.app_name));
+
+        if create {
+            debug!("Creating config file...");
+            trace!("config file path: {}", path.to_string_lossy());
+
+            match File::create(path.clone()) {
+                Ok(_) => debug!("Created config file."),
+                Err(e) => {
+                    error!("Could not create config file.");
+                    error!("{}", e);
+                }
+            }
+        }
+
+        path
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::remove_file;
+
+    use super::*;
+    use rstest::*;
+
+    #[fixture]
+    fn paths() -> Paths {
+        Paths::new("foo")
+    }
+
+    #[rstest(create, case(true), case(false))]
+    fn test_config_file(paths: Paths, create: bool) {
+        let config_file = paths.get_config_file(create);
+
+        match create {
+            true => {
+                assert!(config_file.exists());
+                // tidy up
+                remove_file(config_file).expect("Could not delete config file.");
+            }
+            false => assert!(!config_file.exists()),
         }
     }
 }
