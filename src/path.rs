@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, File},
+    fs::{create_dir, create_dir_all, File},
     path::PathBuf,
 };
 
@@ -80,11 +80,31 @@ impl Paths {
 
         path
     }
+
+    pub fn get_data_dir(&self, create: bool) -> PathBuf {
+        debug!("Getting data directory...");
+        trace!("create: {}", create);
+
+        let mut path = PROJECT_DIRS.data_dir().to_path_buf();
+        path.push(format!("{}", self.app_name));
+
+        if create {
+            debug!("Creating data directory...");
+            trace!("data directory path: {}", path.to_string_lossy());
+
+            create_dir(path.clone()).expect("Could not create data directory.");
+        }
+
+        path
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{ffi::OsStr, fs::remove_file};
+    use std::{
+        ffi::OsStr,
+        fs::{remove_dir_all, remove_file},
+    };
 
     use super::*;
     use rstest::*;
@@ -99,6 +119,11 @@ mod tests {
         create => [true, false],
     )]
     fn test_config_file(paths: Paths, home: bool, create: bool) {
+        {
+            // setup
+            let config_file = paths.get_config_file(home, false);
+            let _ = remove_file(config_file);
+        }
         let config_file = paths.get_config_file(home, create);
 
         match home {
@@ -112,10 +137,29 @@ mod tests {
         match create {
             true => {
                 assert!(config_file.exists());
-                // tidy up
-                remove_file(config_file).expect("Could not delete config file.");
             }
             false => assert!(!config_file.exists()),
+        }
+    }
+
+    #[rstest(
+        create => [true, false]
+    )]
+    fn test_data_dir(paths: Paths, create: bool) {
+        {
+            // setup
+            let data_dir = paths.get_data_dir(false);
+            let _ = remove_dir_all(data_dir);
+        }
+        let data_dir = paths.get_data_dir(create);
+
+        match create {
+            true => {
+                assert!(data_dir.exists());
+                // tidy up
+                remove_dir_all(data_dir).expect("Could not delete data directory.");
+            }
+            false => assert!(!data_dir.exists()),
         }
     }
 }
