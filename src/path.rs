@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use directories::ProjectDirs;
+use directories::{ProjectDirs, UserDirs};
 use lazy_static::lazy_static;
 use log::*;
 
@@ -27,7 +27,12 @@ const APPLICATION: &str = "altbinutils";
 
 lazy_static! {
     static ref PROJECT_DIRS: ProjectDirs = ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
-        .expect("Could not initializer project directories.");
+        .expect("Could not initialize project directories.");
+}
+
+lazy_static! {
+    static ref USER_DIRS: UserDirs =
+        UserDirs::new().expect("Could not initialize user directories.");
 }
 
 /// Paths of an app.
@@ -43,23 +48,32 @@ impl Paths {
         }
     }
 
-    pub fn get_config_file(&self, create: bool) -> PathBuf {
+    pub fn get_config_file(&self, home: bool, create: bool) -> PathBuf {
         debug!("Getting config file...");
-        trace!("app name: {}", self.app_name);
+        trace!("home: {}", home);
         trace!("create: {}", create);
 
-        let mut path = PROJECT_DIRS.config_dir().to_path_buf();
-        path.push(format!("{}.config.toml", self.app_name));
+        let mut path = match home {
+            true => USER_DIRS.home_dir().to_path_buf(),
+            false => PROJECT_DIRS.config_dir().to_path_buf(),
+        };
+        path.push(format!(
+            "{}{}.config.toml",
+            if home { "." } else { "" }, // if home, then add dot to start, to hide it in unix systems
+            self.app_name
+        ));
 
         if create {
             debug!("Creating config file...");
             trace!("config file path: {}", path.to_string_lossy());
 
-            debug!("Creating parent path...");
-            let parent_path = path
-                .parent()
-                .expect("Could not get the parent path of config file.");
-            create_dir_all(parent_path).expect("Could not create parent paths.");
+            if !home {
+                debug!("Creating parent path...");
+                let parent_path = path
+                    .parent()
+                    .expect("Could not get the parent path of config file.");
+                create_dir_all(parent_path).expect("Could not create parent paths.");
+            }
 
             File::create(path.clone()).expect("Could not create config file.");
         }
@@ -70,7 +84,7 @@ impl Paths {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::remove_file;
+    use std::{ffi::OsStr, fs::remove_file};
 
     use super::*;
     use rstest::*;
@@ -80,9 +94,20 @@ mod tests {
         Paths::new("foo")
     }
 
-    #[rstest(create, case(true), case(false))]
-    fn test_config_file(paths: Paths, create: bool) {
-        let config_file = paths.get_config_file(create);
+    #[rstest(
+        home => [true, false],
+        create => [true, false],
+    )]
+    fn test_config_file(paths: Paths, home: bool, create: bool) {
+        let config_file = paths.get_config_file(home, create);
+
+        match home {
+            true => assert_eq!(
+                Some(OsStr::new(".foo.config.toml")),
+                config_file.file_name()
+            ),
+            false => assert_eq!(Some(OsStr::new("foo.config.toml")), config_file.file_name()),
+        };
 
         match create {
             true => {
