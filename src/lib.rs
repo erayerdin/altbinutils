@@ -1,4 +1,4 @@
-mod path;
+pub mod path;
 
 // Copyright 2021 erayerdin
 //
