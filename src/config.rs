@@ -1,8 +1,4 @@
-pub mod app;
-pub mod config;
-pub mod path;
-
-// Copyright 2021 erayerdin
+// Copyright 2021 Eray Erdin
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,3 +11,5 @@ pub mod path;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+pub trait Config {} // TODO
