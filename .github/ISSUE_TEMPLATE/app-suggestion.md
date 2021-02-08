@@ -12,11 +12,21 @@ assignees: ''
 
 <!-- Give detailed explanation about app, why you think it's needed, what purpose it serves etc. -->
 
-# Examples
+# Specification
+
+## Usage
 
 <!-- Write examples to the code block below. You can use comments to define what a specific flag, subcommand or arg does. -->
 
 ```bash
 # comment
 appname --help
+```
+
+## Configuration
+
+<!-- Write configuration to code block below. Use comments to tell what they do. -->
+
+```toml
+# configs
 ```
