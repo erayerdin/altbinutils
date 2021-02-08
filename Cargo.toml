@@ -6,3 +6,10 @@ edition = "2018"
 description = "Alternative Binary Utilities"
 
 [dependencies]
+directories = "3.0.1"
+lazy_static = "1.4.0"
+log = "0.4.14"
+
+[dev-dependencies]
+rstest = "0.6.4"
+serial_test = "0.5.1"
