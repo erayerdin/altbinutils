@@ -100,6 +100,23 @@ impl Paths {
 
         path
     }
+
+    pub fn get_cache_dir(&self, create: bool) -> PathBuf {
+        debug!("Getting cache directory...");
+        trace!("create: {}", create);
+
+        let mut path = PROJECT_DIRS.cache_dir().to_path_buf();
+        path.push(format!("{}", self.app_name));
+
+        if create {
+            debug!("Creating cache directory...");
+            trace!("cache directory path: {}", path.to_string_lossy());
+
+            create_dir_all(path.clone()).expect("Could not create cache directory.");
+        }
+
+        path
+    }
 }
 
 #[cfg(test)]
@@ -139,12 +156,7 @@ mod tests {
             false => assert_eq!(Some(OsStr::new("foo.config.toml")), config_file.file_name()),
         };
 
-        match create {
-            true => {
-                assert!(config_file.exists());
-            }
-            false => assert!(!config_file.exists()),
-        }
+        assert_eq!(config_file.exists(), create);
     }
 
     #[rstest(
@@ -157,13 +169,23 @@ mod tests {
             let data_dir = paths.get_data_dir(false);
             let _ = remove_dir_all(data_dir);
         }
-        let data_dir = paths.get_data_dir(create);
 
-        match create {
-            true => {
-                assert!(data_dir.exists());
-            }
-            false => assert!(!data_dir.exists()),
+        let data_dir = paths.get_data_dir(create);
+        assert_eq!(data_dir.exists(), create);
+    }
+
+    #[rstest(
+        create => [true, false]
+    )]
+    #[serial]
+    fn test_cache_dir(paths: Paths, create: bool) {
+        {
+            // setup
+            let cache_dir = paths.get_cache_dir(false);
+            let _ = remove_dir_all(cache_dir);
         }
+
+        let cache_dir = paths.get_cache_dir(create);
+        assert_eq!(cache_dir.exists(), create);
     }
 }
