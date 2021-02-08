@@ -104,6 +104,7 @@ impl Paths {
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
     use std::{
         ffi::OsStr,
         fs::{remove_dir_all, remove_file},
@@ -121,6 +122,7 @@ mod tests {
         home => [true, false],
         create => [true, false],
     )]
+    #[serial]
     fn test_config_file(paths: Paths, home: bool, create: bool) {
         {
             // setup
@@ -148,6 +150,7 @@ mod tests {
     #[rstest(
         create => [true, false]
     )]
+    #[serial]
     fn test_data_dir(paths: Paths, create: bool) {
         {
             // setup

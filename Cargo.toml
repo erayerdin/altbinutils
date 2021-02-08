@@ -12,3 +12,4 @@ log = "0.4.14"
 
 [dev-dependencies]
 rstest = "0.6.4"
+serial_test = "0.5.1"
