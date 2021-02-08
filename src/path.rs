@@ -75,7 +75,10 @@ impl Paths {
                 create_dir_all(parent_path).expect("Could not create parent paths.");
             }
 
-            File::create(path.clone()).expect("Could not create config file.");
+            File::create(path.clone())
+                .expect("Could not create config file.")
+                .sync_all()
+                .expect("Could not sync config file on filesystem.");
         }
 
         path
