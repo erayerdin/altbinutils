@@ -5,7 +5,7 @@ use std::{
 
 use directories::{ProjectDirs, UserDirs};
 use lazy_static::lazy_static;
-use log::*;
+use log::{debug, trace};
 
 // Copyright 2021 erayerdin
 //
