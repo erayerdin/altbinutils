@@ -1,3 +1,5 @@
+use log::error;
+
 pub mod app;
 pub mod path;
 
@@ -14,3 +16,20 @@ pub mod path;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+pub enum ExitCodes {
+    DirectoriesInitFailure,
+}
+
+impl From<ExitCodes> for i32 {
+    fn from(e: ExitCodes) -> Self {
+        match e {
+            ExitCodes::DirectoriesInitFailure => -2,
+            #[allow(unreachable_patterns)]
+            _ => {
+                error!("The application should not have reached to this point. ExitCodes::get_exit_code match statement");
+                -1
+            }
+        }
+    }
+}
