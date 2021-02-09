@@ -97,7 +97,6 @@ impl Paths {
 
         if create {
             debug!("Creating config file...");
-            trace!("config file path: {}", path.to_string_lossy());
 
             if !home {
                 debug!("Creating parent directories...");
@@ -144,21 +143,29 @@ impl Paths {
         Ok(path)
     }
 
-    pub fn get_data_dir(&self, create: bool) -> PathBuf {
+    pub fn get_data_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
         debug!("Getting data directory...");
         trace!("create: {}", create);
 
-        let mut path = PROJECT_DIRS.data_dir().to_path_buf();
+        let mut path = self.project_dirs.data_dir().to_path_buf();
         path.push(format!("{}", self.app_name));
+        trace!("data dir path: {}", path.to_string_lossy());
 
         if create {
             debug!("Creating data directory...");
-            trace!("data directory path: {}", path.to_string_lossy());
 
-            create_dir_all(path.clone()).expect("Could not create data directory.");
+            match create_dir_all(path.clone()) {
+                Err(e) => {
+                    return Err(ApplicationError::InitError {
+                        exit_code: ExitCodes::DataDirectoryFailure.into(),
+                        message: format!("Could not create data directory. {}", e),
+                    })
+                }
+                _ => {}
+            }
         }
 
-        path
+        Ok(path)
     }
 
     pub fn get_cache_dir(&self, create: bool) -> PathBuf {
@@ -230,11 +237,15 @@ mod tests {
     fn test_data_dir(paths: Paths, create: bool) {
         {
             // setup
-            let data_dir = paths.get_data_dir(false);
+            let data_dir = paths
+                .get_data_dir(false)
+                .expect("Could not initialize data dir.");
             let _ = remove_dir_all(data_dir);
         }
 
-        let data_dir = paths.get_data_dir(create);
+        let data_dir = paths
+            .get_data_dir(create)
+            .expect("Could not initialize data dir.");
         assert_eq!(data_dir.exists(), create);
     }
 
