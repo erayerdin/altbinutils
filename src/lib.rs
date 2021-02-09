@@ -1,5 +1,4 @@
 pub mod app;
-pub mod config;
 pub mod path;
 
 // Copyright 2021 erayerdin
