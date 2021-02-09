@@ -5,7 +5,12 @@ use std::{
 
 use directories::{ProjectDirs, UserDirs};
 use lazy_static::lazy_static;
-use log::{debug, trace};
+use log::{debug, error, trace};
+
+use crate::{
+    app::{ApplicationError, ApplicationResult},
+    ExitCodes,
+};
 
 // Copyright 2021 erayerdin
 //
@@ -38,14 +43,40 @@ lazy_static! {
 /// Paths of an app.
 pub struct Paths {
     app_name: String,
+    project_dirs: ProjectDirs,
+    user_dirs: UserDirs,
 }
 
 impl Paths {
-    pub fn new(app_name: &str) -> Self {
+    pub fn new(app_name: &str) -> ApplicationResult<Self> {
         debug!("Initializing Paths for {}...", app_name);
-        Self {
-            app_name: app_name.to_owned(),
-        }
+        let app_name = app_name.to_owned();
+
+        let project_dirs = match ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION) {
+            Some(d) => d,
+            None => {
+                return Err(ApplicationError::InitError {
+                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    message: "Could not initialize ProjectDirs.".to_owned(),
+                })
+            }
+        };
+
+        let user_dirs = match UserDirs::new() {
+            Some(d) => d,
+            None => {
+                return Err(ApplicationError::InitError {
+                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    message: "Could not initialize UserDirs.".to_owned(),
+                })
+            }
+        };
+
+        Ok(Self {
+            app_name,
+            project_dirs,
+            user_dirs,
+        })
     }
 
     pub fn get_config_file(&self, home: bool, create: bool) -> PathBuf {
@@ -132,7 +163,7 @@ mod tests {
 
     #[fixture]
     fn paths() -> Paths {
-        Paths::new("foo")
+        Paths::new("foo").expect("Could not initialize Paths.")
     }
 
     #[rstest(
