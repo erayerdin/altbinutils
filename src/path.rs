@@ -4,7 +4,6 @@ use std::{
 };
 
 use directories::{ProjectDirs, UserDirs};
-use lazy_static::lazy_static;
 use log::{debug, trace};
 
 use crate::{
@@ -29,16 +28,6 @@ use crate::{
 const QUALIFIER: &str = "io.github";
 const ORGANIZATION: &str = "erayerdin";
 const APPLICATION: &str = "altbinutils";
-
-lazy_static! {
-    static ref PROJECT_DIRS: ProjectDirs = ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
-        .expect("Could not initialize project directories.");
-}
-
-lazy_static! {
-    static ref USER_DIRS: UserDirs =
-        UserDirs::new().expect("Could not initialize user directories.");
-}
 
 /// Paths of an app.
 pub struct Paths {

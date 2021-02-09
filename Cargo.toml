@@ -8,7 +8,6 @@ description = "Alternative Binary Utilities"
 [dependencies]
 clap = "2.33.3"
 directories = "3.0.1"
-lazy_static = "1.4.0"
 log = "0.4.14"
 snafu = "0.6.10"
 
