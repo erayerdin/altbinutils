@@ -21,6 +21,7 @@ pub enum ExitCodes {
     DirectoriesInitFailure,
     ConfigFileFailure,
     DataDirectoryFailure,
+    CacheDirectoryFailure,
 }
 
 impl From<ExitCodes> for i32 {
@@ -29,6 +30,7 @@ impl From<ExitCodes> for i32 {
             ExitCodes::DirectoriesInitFailure => -2,
             ExitCodes::ConfigFileFailure => -3,
             ExitCodes::DataDirectoryFailure => -4,
+            ExitCodes::CacheDirectoryFailure => -5,
             #[allow(unreachable_patterns)]
             _ => {
                 error!("The application should not have reached to this point. ExitCodes::get_exit_code match statement");

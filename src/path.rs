@@ -168,21 +168,29 @@ impl Paths {
         Ok(path)
     }
 
-    pub fn get_cache_dir(&self, create: bool) -> PathBuf {
+    pub fn get_cache_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
         debug!("Getting cache directory...");
         trace!("create: {}", create);
 
-        let mut path = PROJECT_DIRS.cache_dir().to_path_buf();
+        let mut path = self.project_dirs.cache_dir().to_path_buf();
         path.push(format!("{}", self.app_name));
+        trace!("cache directory path: {}", path.to_string_lossy());
 
         if create {
             debug!("Creating cache directory...");
-            trace!("cache directory path: {}", path.to_string_lossy());
 
-            create_dir_all(path.clone()).expect("Could not create cache directory.");
+            match create_dir_all(path.clone()) {
+                Err(e) => {
+                    return Err(ApplicationError::InitError {
+                        exit_code: ExitCodes::CacheDirectoryFailure.into(),
+                        message: format!("Could not create cache directory. {}", e),
+                    })
+                }
+                _ => {}
+            };
         }
 
-        path
+        Ok(path)
     }
 }
 
@@ -256,11 +264,15 @@ mod tests {
     fn test_cache_dir(paths: Paths, create: bool) {
         {
             // setup
-            let cache_dir = paths.get_cache_dir(false);
+            let cache_dir = paths
+                .get_cache_dir(false)
+                .expect("Could not initialize cache dir.");
             let _ = remove_dir_all(cache_dir);
         }
 
-        let cache_dir = paths.get_cache_dir(create);
+        let cache_dir = paths
+            .get_cache_dir(create)
+            .expect("Could not initialize cache dir.");
         assert_eq!(cache_dir.exists(), create);
     }
 }
