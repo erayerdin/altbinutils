@@ -19,12 +19,14 @@ pub mod path;
 
 pub enum ExitCodes {
     DirectoriesInitFailure,
+    ConfigFileFailure,
 }
 
 impl From<ExitCodes> for i32 {
     fn from(e: ExitCodes) -> Self {
         match e {
             ExitCodes::DirectoriesInitFailure => -2,
+            ExitCodes::ConfigFileFailure => -3,
             #[allow(unreachable_patterns)]
             _ => {
                 error!("The application should not have reached to this point. ExitCodes::get_exit_code match statement");
