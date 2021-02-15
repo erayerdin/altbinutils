@@ -1,5 +1,3 @@
-use log::error;
-
 pub mod app;
 pub mod paths;
 
