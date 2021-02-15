@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use directories::ProjectDirs;
+use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
 
 use crate::{
@@ -31,6 +31,7 @@ pub enum Entry<'a> {
     Data(&'a str),
     Config(&'a str),
     Cache(&'a str),
+    Home(&'a str),
 }
 
 impl Entry<'_> {
@@ -39,6 +40,7 @@ impl Entry<'_> {
             Entry::Data(_) => "data",
             Entry::Config(_) => "config",
             Entry::Cache(_) => "cache",
+            Entry::Home(_) => "home",
         }
     }
 
@@ -47,6 +49,7 @@ impl Entry<'_> {
             Entry::Data(p) => p,
             Entry::Config(p) => p,
             Entry::Cache(p) => p,
+            Entry::Home(p) => p,
         }
     }
 }
@@ -55,6 +58,7 @@ impl Entry<'_> {
 pub struct Paths {
     app_name: String,
     project_dirs: ProjectDirs,
+    user_dirs: UserDirs,
 }
 
 impl Paths {
@@ -72,9 +76,20 @@ impl Paths {
             }
         };
 
+        let user_dirs = match UserDirs::new() {
+            Some(d) => d,
+            None => {
+                return Err(ApplicationError::InitError {
+                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    message: "Could not initialize UserDirs.".to_owned(),
+                })
+            }
+        };
+
         Ok(Self {
             app_name,
             project_dirs,
+            user_dirs,
         })
     }
 
@@ -86,17 +101,23 @@ impl Paths {
             Entry::Data(_) => self.project_dirs.data_local_dir(),
             Entry::Config(_) => self.project_dirs.config_dir(),
             Entry::Cache(_) => self.project_dirs.cache_dir(),
+            Entry::Home(_) => self.user_dirs.home_dir(),
         }
         .to_path_buf();
         base_dir.push(format!("{}", self.app_name));
         trace!("base dir: {}", base_dir.to_string_lossy());
 
-        debug!("Creating base {} directory...", entry.get_repr());
-        if let Err(e) = fs::create_dir_all(base_dir.clone()) {
-            return Err(ApplicationError::InitError {
-                exit_code: ExitCodes::PathsFailure.into(),
-                message: format!("Could not create base directory. {}", e),
-            });
+        match entry {
+            Entry::Home(_) => (),
+            _ => {
+                debug!("Creating base {} directory...", entry.get_repr());
+                if let Err(e) = fs::create_dir_all(base_dir.clone()) {
+                    return Err(ApplicationError::InitError {
+                        exit_code: ExitCodes::PathsFailure.into(),
+                        message: format!("Could not create base directory. {}", e),
+                    });
+                }
+            }
         }
 
         base_dir.push(entry.get_path());
