@@ -103,56 +103,6 @@ impl Paths {
 
         Ok(base_dir)
     }
-
-    pub fn get_data_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
-        debug!("Getting data directory...");
-        trace!("create: {}", create);
-
-        let mut path = self.project_dirs.data_dir().to_path_buf();
-        path.push(format!("{}", self.app_name));
-        trace!("data dir path: {}", path.to_string_lossy());
-
-        if create {
-            debug!("Creating data directory...");
-
-            match fs::create_dir_all(path.clone()) {
-                Err(e) => {
-                    return Err(ApplicationError::InitError {
-                        exit_code: ExitCodes::DataDirectoryFailure.into(),
-                        message: format!("Could not create data directory. {}", e),
-                    })
-                }
-                _ => {}
-            }
-        }
-
-        Ok(path)
-    }
-
-    pub fn get_cache_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
-        debug!("Getting cache directory...");
-        trace!("create: {}", create);
-
-        let mut path = self.project_dirs.cache_dir().to_path_buf();
-        path.push(format!("{}", self.app_name));
-        trace!("cache directory path: {}", path.to_string_lossy());
-
-        if create {
-            debug!("Creating cache directory...");
-
-            match fs::create_dir_all(path.clone()) {
-                Err(e) => {
-                    return Err(ApplicationError::InitError {
-                        exit_code: ExitCodes::CacheDirectoryFailure.into(),
-                        message: format!("Could not create cache directory. {}", e),
-                    })
-                }
-                _ => {}
-            };
-        }
-
-        Ok(path)
-    }
 }
 
 #[cfg(test)]
