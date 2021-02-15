@@ -142,6 +142,12 @@ pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<PathBuf> 
     })
 }
 
+pub fn get_log_file(paths: &Paths) -> ApplicationResult<PathBuf> {
+    debug!("Getting log file...");
+
+    paths.get_entry(Entry::Cache("app.log"))
+}
+
 #[cfg(test)]
 mod tests {
     use std::ffi::OsStr;
@@ -170,6 +176,12 @@ mod tests {
                 false => Some(OsStr::new("foo.config.toml")),
             }
         );
+    }
+
+    #[rstest]
+    fn test_log_file(paths: Paths) {
+        let log_file = get_log_file(&paths).expect("Could not get log file.");
+        assert_eq!(log_file.file_name(), Some(OsStr::new("app.log")));
     }
 
     mod test_paths {
