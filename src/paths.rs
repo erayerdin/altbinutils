@@ -26,6 +26,31 @@ const QUALIFIER: &str = "io.github";
 const ORGANIZATION: &str = "erayerdin";
 const APPLICATION: &str = "altbinutils";
 
+#[derive(Debug)]
+pub enum Entry<'a> {
+    Data(&'a str),
+    Config(&'a str),
+    Cache(&'a str),
+}
+
+impl Entry<'_> {
+    fn get_repr(&self) -> &str {
+        match self {
+            Entry::Data(_) => "data",
+            Entry::Config(_) => "config",
+            Entry::Cache(_) => "cache",
+        }
+    }
+
+    fn get_path(&self) -> &str {
+        match self {
+            Entry::Data(p) => p,
+            Entry::Config(p) => p,
+            Entry::Cache(p) => p,
+        }
+    }
+}
+
 /// Paths of an app.
 pub struct Paths {
     app_name: String,
@@ -51,6 +76,32 @@ impl Paths {
             app_name,
             project_dirs,
         })
+    }
+
+    pub fn get_entry(&self, entry: Entry) -> ApplicationResult<PathBuf> {
+        debug!("Getting entry...");
+        trace!("entry: {:?}", entry);
+
+        let mut base_dir = match entry {
+            Entry::Data(_) => self.project_dirs.data_local_dir(),
+            Entry::Config(_) => self.project_dirs.config_dir(),
+            Entry::Cache(_) => self.project_dirs.cache_dir(),
+        }
+        .to_path_buf();
+        base_dir.push(format!("{}", self.app_name));
+        trace!("base dir: {}", base_dir.to_string_lossy());
+
+        debug!("Creating base {} directory...", entry.get_repr());
+        if let Err(e) = fs::create_dir_all(base_dir.clone()) {
+            return Err(ApplicationError::InitError {
+                exit_code: ExitCodes::PathsFailure.into(),
+                message: format!("Could not create base directory. {}", e),
+            });
+        }
+
+        base_dir.push(entry.get_path());
+
+        Ok(base_dir)
     }
 
     pub fn get_data_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
@@ -116,41 +167,54 @@ mod tests {
         Paths::new("foo").expect("Could not initialize Paths.")
     }
 
-    #[rstest(
-        create => [true, false]
-    )]
+    #[rstest]
     #[serial]
-    fn test_data_dir(paths: Paths, create: bool) {
+    fn test_data_dir(paths: Paths) {
         {
             // setup
-            let data_dir = paths
-                .get_data_dir(false)
+            let path = paths
+                .get_entry(Entry::Data(""))
                 .expect("Could not initialize data dir.");
-            let _ = fs::remove_dir_all(data_dir);
+            let _ = fs::remove_dir_all(path);
         }
 
-        let data_dir = paths
-            .get_data_dir(create)
+        let path = paths
+            .get_entry(Entry::Data(""))
             .expect("Could not initialize data dir.");
-        assert_eq!(data_dir.exists(), create);
+        assert!(path.exists());
     }
 
-    #[rstest(
-        create => [true, false]
-    )]
+    #[rstest]
     #[serial]
-    fn test_cache_dir(paths: Paths, create: bool) {
+    fn test_cache_dir(paths: Paths) {
         {
             // setup
-            let cache_dir = paths
-                .get_cache_dir(false)
+            let path = paths
+                .get_entry(Entry::Cache(""))
                 .expect("Could not initialize cache dir.");
-            let _ = fs::remove_dir_all(cache_dir);
+            let _ = fs::remove_dir_all(path);
         }
 
-        let cache_dir = paths
-            .get_cache_dir(create)
+        let path = paths
+            .get_entry(Entry::Cache(""))
             .expect("Could not initialize cache dir.");
-        assert_eq!(cache_dir.exists(), create);
+        assert!(path.exists());
+    }
+
+    #[rstest]
+    #[serial]
+    fn test_config_dir(paths: Paths) {
+        {
+            // setup
+            let path = paths
+                .get_entry(Entry::Config(""))
+                .expect("Could not initialize config dir.");
+            let _ = fs::remove_dir_all(path);
+        }
+
+        let path = paths
+            .get_entry(Entry::Config(""))
+            .expect("Could not initialize config dir.");
+        assert!(path.exists());
     }
 }
