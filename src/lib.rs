@@ -1,7 +1,7 @@
 use log::error;
 
 pub mod app;
-pub mod path;
+pub mod paths;
 
 // Copyright 2021 erayerdin
 //
