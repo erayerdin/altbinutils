@@ -1,4 +1,4 @@
-use std::{fs::create_dir_all, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use directories::ProjectDirs;
 use log::{debug, trace};
@@ -64,7 +64,7 @@ impl Paths {
         if create {
             debug!("Creating data directory...");
 
-            match create_dir_all(path.clone()) {
+            match fs::create_dir_all(path.clone()) {
                 Err(e) => {
                     return Err(ApplicationError::InitError {
                         exit_code: ExitCodes::DataDirectoryFailure.into(),
@@ -89,7 +89,7 @@ impl Paths {
         if create {
             debug!("Creating cache directory...");
 
-            match create_dir_all(path.clone()) {
+            match fs::create_dir_all(path.clone()) {
                 Err(e) => {
                     return Err(ApplicationError::InitError {
                         exit_code: ExitCodes::CacheDirectoryFailure.into(),
@@ -107,7 +107,6 @@ impl Paths {
 #[cfg(test)]
 mod tests {
     use serial_test::serial;
-    use std::fs::remove_dir_all;
 
     use super::*;
     use rstest::*;
@@ -127,7 +126,7 @@ mod tests {
             let data_dir = paths
                 .get_data_dir(false)
                 .expect("Could not initialize data dir.");
-            let _ = remove_dir_all(data_dir);
+            let _ = fs::remove_dir_all(data_dir);
         }
 
         let data_dir = paths
@@ -146,7 +145,7 @@ mod tests {
             let cache_dir = paths
                 .get_cache_dir(false)
                 .expect("Could not initialize cache dir.");
-            let _ = remove_dir_all(cache_dir);
+            let _ = fs::remove_dir_all(cache_dir);
         }
 
         let cache_dir = paths
