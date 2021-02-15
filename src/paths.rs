@@ -1,9 +1,6 @@
-use std::{
-    fs::{create_dir_all, File},
-    path::PathBuf,
-};
+use std::{fs::create_dir_all, path::PathBuf};
 
-use directories::{ProjectDirs, UserDirs};
+use directories::ProjectDirs;
 use log::{debug, trace};
 
 use crate::{
@@ -33,7 +30,6 @@ const APPLICATION: &str = "altbinutils";
 pub struct Paths {
     app_name: String,
     project_dirs: ProjectDirs,
-    user_dirs: UserDirs,
 }
 
 impl Paths {
@@ -51,85 +47,10 @@ impl Paths {
             }
         };
 
-        let user_dirs = match UserDirs::new() {
-            Some(d) => d,
-            None => {
-                return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
-                    message: "Could not initialize UserDirs.".to_owned(),
-                })
-            }
-        };
-
         Ok(Self {
             app_name,
             project_dirs,
-            user_dirs,
         })
-    }
-
-    pub fn get_config_file(&self, home: bool, create: bool) -> ApplicationResult<PathBuf> {
-        debug!("Getting config file...");
-        trace!("home: {}", home);
-        trace!("create: {}", create);
-
-        let mut path = match home {
-            true => self.user_dirs.home_dir().to_path_buf(),
-            false => self.project_dirs.config_dir().to_path_buf(),
-        };
-        path.push(format!(
-            "{}{}.config.toml",
-            if home { "." } else { "" }, // if home, then add dot to start, to hide it in unix systems
-            self.app_name
-        ));
-        trace!("config file path: {}", path.to_string_lossy());
-
-        if create {
-            debug!("Creating config file...");
-
-            if !home {
-                debug!("Creating parent directories...");
-                let parent_path = match path.parent() {
-                    Some(p) => p,
-                    None => {
-                        return Err(ApplicationError::InitError {
-                            exit_code: ExitCodes::ConfigFileFailure.into(),
-                            message: "Could not get parent directory.".to_owned(),
-                        })
-                    }
-                };
-                match create_dir_all(parent_path) {
-                    Err(e) => {
-                        return Err(ApplicationError::InitError {
-                            exit_code: ExitCodes::ConfigFileFailure.into(),
-                            message: format!("Could not create parent directories. {}", e),
-                        })
-                    }
-                    _ => {}
-                };
-            }
-
-            debug!("Creating config file...");
-            match File::create(path.clone()) {
-                Ok(f) => match f.sync_all() {
-                    Err(e) => {
-                        return Err(ApplicationError::InitError {
-                            exit_code: ExitCodes::ConfigFileFailure.into(),
-                            message: format!("Could not sync the config file. {}", e),
-                        })
-                    }
-                    _ => {}
-                },
-                Err(e) => {
-                    return Err(ApplicationError::InitError {
-                        exit_code: ExitCodes::ConfigFileFailure.into(),
-                        message: format!("Could not create the config file. {}", e),
-                    })
-                }
-            }
-        }
-
-        Ok(path)
     }
 
     pub fn get_data_dir(&self, create: bool) -> ApplicationResult<PathBuf> {
@@ -186,10 +107,7 @@ impl Paths {
 #[cfg(test)]
 mod tests {
     use serial_test::serial;
-    use std::{
-        ffi::OsStr,
-        fs::{remove_dir_all, remove_file},
-    };
+    use std::fs::remove_dir_all;
 
     use super::*;
     use rstest::*;
@@ -197,34 +115,6 @@ mod tests {
     #[fixture]
     fn paths() -> Paths {
         Paths::new("foo").expect("Could not initialize Paths.")
-    }
-
-    #[rstest(
-        home => [true, false],
-        create => [true, false],
-    )]
-    #[serial]
-    fn test_config_file(paths: Paths, home: bool, create: bool) {
-        {
-            // setup
-            let config_file = paths
-                .get_config_file(home, false)
-                .expect("Could not initialize config file.");
-            let _ = remove_file(config_file);
-        }
-        let config_file = paths
-            .get_config_file(home, create)
-            .expect("Could not initialize config file.");
-
-        match home {
-            true => assert_eq!(
-                Some(OsStr::new(".foo.config.toml")),
-                config_file.file_name()
-            ),
-            false => assert_eq!(Some(OsStr::new("foo.config.toml")), config_file.file_name()),
-        };
-
-        assert_eq!(config_file.exists(), create);
     }
 
     #[rstest(
