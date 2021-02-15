@@ -126,8 +126,26 @@ impl Paths {
     }
 }
 
+pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<PathBuf> {
+    debug!("Getting config file...");
+    trace!("home: {}", home);
+
+    let file_name = match home {
+        true => format!(".{}.config.toml", paths.app_name),
+        false => format!("{}.config.toml", paths.app_name),
+    };
+    trace!("file name: {}", file_name);
+
+    paths.get_entry(match home {
+        true => Entry::Home(&file_name),
+        false => Entry::Config(&file_name),
+    })
+}
+
 #[cfg(test)]
 mod tests {
+    use std::ffi::OsStr;
+
     use serial_test::serial;
 
     use super::*;
@@ -138,54 +156,74 @@ mod tests {
         Paths::new("foo").expect("Could not initialize Paths.")
     }
 
-    #[rstest]
-    #[serial]
-    fn test_data_dir(paths: Paths) {
-        {
-            // setup
+    #[rstest(
+        home => [true, false]
+    )]
+    fn test_config_file(paths: Paths, home: bool) {
+        let config_file = get_config_file(&paths, home).expect("Could not get config file.");
+        let config_file_name = config_file.file_name();
+
+        assert_eq!(
+            config_file_name,
+            match home {
+                true => Some(OsStr::new(".foo.config.toml")),
+                false => Some(OsStr::new("foo.config.toml")),
+            }
+        );
+    }
+
+    mod test_paths {
+        use super::*;
+
+        #[rstest]
+        #[serial]
+        fn test_data_dir(paths: Paths) {
+            {
+                // setup
+                let path = paths
+                    .get_entry(Entry::Data(""))
+                    .expect("Could not initialize data dir.");
+                let _ = fs::remove_dir_all(path);
+            }
+
             let path = paths
                 .get_entry(Entry::Data(""))
                 .expect("Could not initialize data dir.");
-            let _ = fs::remove_dir_all(path);
+            assert!(path.exists());
         }
 
-        let path = paths
-            .get_entry(Entry::Data(""))
-            .expect("Could not initialize data dir.");
-        assert!(path.exists());
-    }
+        #[rstest]
+        #[serial]
+        fn test_cache_dir(paths: Paths) {
+            {
+                // setup
+                let path = paths
+                    .get_entry(Entry::Cache(""))
+                    .expect("Could not initialize cache dir.");
+                let _ = fs::remove_dir_all(path);
+            }
 
-    #[rstest]
-    #[serial]
-    fn test_cache_dir(paths: Paths) {
-        {
-            // setup
             let path = paths
                 .get_entry(Entry::Cache(""))
                 .expect("Could not initialize cache dir.");
-            let _ = fs::remove_dir_all(path);
+            assert!(path.exists());
         }
 
-        let path = paths
-            .get_entry(Entry::Cache(""))
-            .expect("Could not initialize cache dir.");
-        assert!(path.exists());
-    }
+        #[rstest]
+        #[serial]
+        fn test_config_dir(paths: Paths) {
+            {
+                // setup
+                let path = paths
+                    .get_entry(Entry::Config(""))
+                    .expect("Could not initialize config dir.");
+                let _ = fs::remove_dir_all(path);
+            }
 
-    #[rstest]
-    #[serial]
-    fn test_config_dir(paths: Paths) {
-        {
-            // setup
             let path = paths
                 .get_entry(Entry::Config(""))
                 .expect("Could not initialize config dir.");
-            let _ = fs::remove_dir_all(path);
+            assert!(path.exists());
         }
-
-        let path = paths
-            .get_entry(Entry::Config(""))
-            .expect("Could not initialize config dir.");
-        assert!(path.exists());
     }
 }
