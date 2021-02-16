@@ -1,5 +1,6 @@
 use std::process;
 
+use fern::Dispatch;
 use log::{debug, error};
 
 // Copyright 2021 Eray Erdin
@@ -60,14 +61,30 @@ fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
 }
 
 pub trait Application {
-    fn init(&self) -> ApplicationResult<()>;
+    fn init(&self, logger: Dispatch) -> ApplicationResult<()>;
     fn run(&self) -> ApplicationResult<()>;
     fn destroy(&self) -> ApplicationResult<()>;
     fn invoke(&self) -> InvokeReturn {
+        let logger = if cfg!(debug_assertions) {
+            Dispatch::new().format(|out, message, record| {
+                out.finish(format_args!(
+                    "[{}][{}] {}",
+                    record.target(),
+                    record.level(),
+                    message
+                ))
+            })
+        } else {
+            Dispatch::new().format(|out, message, _| {
+                // TODO append level to anything except info level
+                out.finish(format_args!("{}", message))
+            })
+        };
+
         debug!("Invoking the application...");
 
         debug!("Initializing the application...");
-        match self.init() {
+        match self.init(logger) {
             Ok(_) => {
                 debug!("Finished the initialization of application successfully.");
                 debug!("Running the application...");
@@ -104,7 +121,7 @@ mod tests {
     struct SuccessfulApp;
 
     impl Application for InitFailApp {
-        fn init(&self) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
             Err(ApplicationError::InitError {
                 exit_code: 100,
                 message: "init fail".to_owned(),
@@ -121,7 +138,7 @@ mod tests {
     }
 
     impl Application for RunFailApp {
-        fn init(&self) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -138,7 +155,7 @@ mod tests {
     }
 
     impl Application for DestroyFailApp {
-        fn init(&self) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -155,7 +172,7 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
-        fn init(&self) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
             Ok(())
         }
 
