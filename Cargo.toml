@@ -1,6 +1,6 @@
 [package]
 name = "altbinutils"
-version = "0.1.0-alpha.1"
+version = "2021.2.1-alpha.1"
 authors = ["Eray Erdin <eraygezer.94@gmail.com>"]
 edition = "2018"
 description = "Alternative Binary Utilities"
@@ -8,8 +8,8 @@ description = "Alternative Binary Utilities"
 [dependencies]
 clap = "2.33.3"
 directories = "3.0.1"
+fern = "0.6.0"
 log = "0.4.14"
-snafu = "0.6.10"
 
 [dev-dependencies]
 rstest = "0.6.4"

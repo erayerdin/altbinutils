@@ -1,7 +1,8 @@
 use std::process;
 
+use clap::ArgMatches;
+use fern::Dispatch;
 use log::{debug, error};
-use snafu::Snafu;
 
 // Copyright 2021 Eray Erdin
 //
@@ -17,13 +18,10 @@ use snafu::Snafu;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[derive(Debug, Snafu)]
+#[derive(Debug)]
 pub enum ApplicationError {
-    #[snafu(display("An error occured while initializing application. {}", message))]
     InitError { exit_code: i32, message: String },
-    #[snafu(display("An error occured while running application. {}", message))]
     RunError { exit_code: i32, message: String },
-    #[snafu(display("An error occured while destroying application. {}", message))]
     DestroyError { exit_code: i32, message: String },
 }
 
@@ -64,19 +62,35 @@ fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
 }
 
 pub trait Application {
-    fn init(&self) -> ApplicationResult<()>;
-    fn run(&self) -> ApplicationResult<()>;
+    fn init(&self, logger: Dispatch) -> ApplicationResult<ArgMatches>;
+    fn run(&self, matches: ArgMatches) -> ApplicationResult<()>;
     fn destroy(&self) -> ApplicationResult<()>;
     fn invoke(&self) -> InvokeReturn {
+        let logger = if cfg!(debug_assertions) {
+            Dispatch::new().format(|out, message, record| {
+                out.finish(format_args!(
+                    "[{}][{}] {}",
+                    record.target(),
+                    record.level(),
+                    message
+                ))
+            })
+        } else {
+            Dispatch::new().format(|out, message, _| {
+                // TODO append level to anything except info level
+                out.finish(format_args!("{}", message))
+            })
+        };
+
         debug!("Invoking the application...");
 
         debug!("Initializing the application...");
-        match self.init() {
-            Ok(_) => {
+        match self.init(logger) {
+            Ok(m) => {
                 debug!("Finished the initialization of application successfully.");
                 debug!("Running the application...");
 
-                match self.run() {
+                match self.run(m) {
                     Ok(_) => {
                         debug!("Finished the running of application successfully.");
                         debug!("Destroying the application...");
@@ -92,7 +106,10 @@ pub trait Application {
                     Err(e) => fail_invoke("run", e),
                 }
             }
-            Err(e) => fail_invoke("initialize", e),
+            Err(e) => match self.destroy() {
+                Ok(_) => fail_invoke("initialize", e),
+                Err(e) => fail_invoke("destroy", e),
+            },
         }
     }
 }
@@ -100,22 +117,24 @@ pub trait Application {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::App;
     use rstest::*;
 
     struct InitFailApp;
     struct RunFailApp;
     struct DestroyFailApp;
+    struct InitDestroyFailApp;
     struct SuccessfulApp;
 
     impl Application for InitFailApp {
-        fn init(&self) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
             Err(ApplicationError::InitError {
                 exit_code: 100,
-                message: "init fail".to_owned(),
+                message: "init failure".to_owned(),
             })
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -125,14 +144,14 @@ mod tests {
     }
 
     impl Application for RunFailApp {
-        fn init(&self) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("runfailapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
-                message: "run fail".to_owned(),
+                message: "run failure".to_owned(),
             })
         }
 
@@ -142,28 +161,48 @@ mod tests {
     }
 
     impl Application for DestroyFailApp {
-        fn init(&self) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("destroyfailapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
         fn destroy(&self) -> ApplicationResult<()> {
             Err(ApplicationError::DestroyError {
                 exit_code: 300,
-                message: "destroy fail".to_owned(),
+                message: "destroy failure".to_owned(),
+            })
+        }
+    }
+
+    impl Application for InitDestroyFailApp {
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Err(ApplicationError::InitError {
+                exit_code: 400,
+                message: "init failure".to_owned(),
+            })
+        }
+
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
+            Ok(())
+        }
+
+        fn destroy(&self) -> ApplicationResult<()> {
+            Err(ApplicationError::DestroyError {
+                exit_code: 500,
+                message: "init destroy failure".to_owned(),
             })
         }
     }
 
     impl Application for SuccessfulApp {
-        fn init(&self) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("successfulapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -177,8 +216,8 @@ mod tests {
         let app = InitFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "init failure");
         assert_eq!(exit_code, 100);
-        assert_eq!(message, "init fail");
     }
 
     #[rstest]
@@ -186,8 +225,8 @@ mod tests {
         let app = RunFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "run failure");
         assert_eq!(exit_code, 200);
-        assert_eq!(message, "run fail");
     }
 
     #[rstest]
@@ -195,8 +234,17 @@ mod tests {
         let app = DestroyFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "destroy failure");
         assert_eq!(exit_code, 300);
-        assert_eq!(message, "destroy fail");
+    }
+
+    #[rstest]
+    fn test_init_destroy_fail() {
+        let app = InitDestroyFailApp;
+        let (exit_code, message) = app.invoke();
+
+        assert_eq!(message, "init destroy failure");
+        assert_eq!(exit_code, 500);
     }
 
     #[rstest]
