@@ -1,5 +1,6 @@
 use std::process;
 
+use clap::ArgMatches;
 use fern::Dispatch;
 use log::{debug, error};
 
@@ -61,8 +62,8 @@ fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
 }
 
 pub trait Application {
-    fn init(&self, logger: Dispatch) -> ApplicationResult<()>;
-    fn run(&self) -> ApplicationResult<()>;
+    fn init(&self, logger: Dispatch) -> ApplicationResult<ArgMatches>;
+    fn run(&self, matches: ArgMatches) -> ApplicationResult<()>;
     fn destroy(&self) -> ApplicationResult<()>;
     fn invoke(&self) -> InvokeReturn {
         let logger = if cfg!(debug_assertions) {
@@ -85,11 +86,11 @@ pub trait Application {
 
         debug!("Initializing the application...");
         match self.init(logger) {
-            Ok(_) => {
+            Ok(m) => {
                 debug!("Finished the initialization of application successfully.");
                 debug!("Running the application...");
 
-                match self.run() {
+                match self.run(m) {
                     Ok(_) => {
                         debug!("Finished the running of application successfully.");
                         debug!("Destroying the application...");
@@ -113,6 +114,7 @@ pub trait Application {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::App;
     use rstest::*;
 
     struct InitFailApp;
@@ -121,14 +123,14 @@ mod tests {
     struct SuccessfulApp;
 
     impl Application for InitFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
             Err(ApplicationError::InitError {
                 exit_code: 100,
                 message: "init fail".to_owned(),
             })
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -138,11 +140,11 @@ mod tests {
     }
 
     impl Application for RunFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("runfailapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run fail".to_owned(),
@@ -155,11 +157,11 @@ mod tests {
     }
 
     impl Application for DestroyFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("destroyfailapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
@@ -172,11 +174,11 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<()> {
-            Ok(())
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Ok(App::new("successfulapp").get_matches())
         }
 
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Ok(())
         }
 
