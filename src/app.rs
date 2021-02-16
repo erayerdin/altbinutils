@@ -106,7 +106,10 @@ pub trait Application {
                     Err(e) => fail_invoke("run", e),
                 }
             }
-            Err(e) => fail_invoke("initialize", e),
+            Err(e) => match self.destroy() {
+                Ok(_) => fail_invoke("initialize", e),
+                Err(e) => fail_invoke("destroy", e),
+            },
         }
     }
 }
@@ -120,6 +123,7 @@ mod tests {
     struct InitFailApp;
     struct RunFailApp;
     struct DestroyFailApp;
+    struct InitDestroyFailApp;
     struct SuccessfulApp;
 
     impl Application for InitFailApp {
@@ -173,6 +177,26 @@ mod tests {
         }
     }
 
+    impl Application for InitDestroyFailApp {
+        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
+            Err(ApplicationError::InitError {
+                exit_code: 400,
+                message: "init fail".to_owned(),
+            })
+        }
+
+        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
+            Ok(())
+        }
+
+        fn destroy(&self) -> ApplicationResult<()> {
+            Err(ApplicationError::DestroyError {
+                exit_code: 500,
+                message: "init destroy fail".to_owned(),
+            })
+        }
+    }
+
     impl Application for SuccessfulApp {
         fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
             Ok(App::new("successfulapp").get_matches())
@@ -212,6 +236,15 @@ mod tests {
 
         assert_eq!(exit_code, 300);
         assert_eq!(message, "destroy fail");
+    }
+
+    #[rstest]
+    fn test_init_destroy_fail() {
+        let app = InitDestroyFailApp;
+        let (exit_code, message) = app.invoke();
+
+        assert_eq!(exit_code, 500);
+        assert_eq!(message, "init destroy fail");
     }
 
     #[rstest]
