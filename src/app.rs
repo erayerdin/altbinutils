@@ -130,7 +130,7 @@ mod tests {
         fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
             Err(ApplicationError::InitError {
                 exit_code: 100,
-                message: "init fail".to_owned(),
+                message: "init failure".to_owned(),
             })
         }
 
@@ -151,7 +151,7 @@ mod tests {
         fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
-                message: "run fail".to_owned(),
+                message: "run failure".to_owned(),
             })
         }
 
@@ -172,7 +172,7 @@ mod tests {
         fn destroy(&self) -> ApplicationResult<()> {
             Err(ApplicationError::DestroyError {
                 exit_code: 300,
-                message: "destroy fail".to_owned(),
+                message: "destroy failure".to_owned(),
             })
         }
     }
@@ -181,7 +181,7 @@ mod tests {
         fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
             Err(ApplicationError::InitError {
                 exit_code: 400,
-                message: "init fail".to_owned(),
+                message: "init failure".to_owned(),
             })
         }
 
@@ -192,7 +192,7 @@ mod tests {
         fn destroy(&self) -> ApplicationResult<()> {
             Err(ApplicationError::DestroyError {
                 exit_code: 500,
-                message: "init destroy fail".to_owned(),
+                message: "init destroy failure".to_owned(),
             })
         }
     }
@@ -216,8 +216,8 @@ mod tests {
         let app = InitFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "init failure");
         assert_eq!(exit_code, 100);
-        assert_eq!(message, "init fail");
     }
 
     #[rstest]
@@ -225,8 +225,8 @@ mod tests {
         let app = RunFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "run failure");
         assert_eq!(exit_code, 200);
-        assert_eq!(message, "run fail");
     }
 
     #[rstest]
@@ -234,8 +234,8 @@ mod tests {
         let app = DestroyFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "destroy failure");
         assert_eq!(exit_code, 300);
-        assert_eq!(message, "destroy fail");
     }
 
     #[rstest]
@@ -243,8 +243,8 @@ mod tests {
         let app = InitDestroyFailApp;
         let (exit_code, message) = app.invoke();
 
+        assert_eq!(message, "init destroy failure");
         assert_eq!(exit_code, 500);
-        assert_eq!(message, "init destroy fail");
     }
 
     #[rstest]
