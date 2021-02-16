@@ -1,7 +1,6 @@
 use std::process;
 
 use log::{debug, error};
-use snafu::Snafu;
 
 // Copyright 2021 Eray Erdin
 //
@@ -17,13 +16,10 @@ use snafu::Snafu;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[derive(Debug, Snafu)]
+#[derive(Debug)]
 pub enum ApplicationError {
-    #[snafu(display("An error occured while initializing application. {}", message))]
     InitError { exit_code: i32, message: String },
-    #[snafu(display("An error occured while running application. {}", message))]
     RunError { exit_code: i32, message: String },
-    #[snafu(display("An error occured while destroying application. {}", message))]
     DestroyError { exit_code: i32, message: String },
 }
 
