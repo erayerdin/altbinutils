@@ -77,6 +77,7 @@ pub trait Application {
                     ))
                 })
                 .level(LevelFilter::Trace)
+                .chain(std::io::stdout())
         } else {
             Dispatch::new()
                 .format(|out, message, _| {
