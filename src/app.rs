@@ -2,7 +2,7 @@ use std::process;
 
 use clap::ArgMatches;
 use fern::Dispatch;
-use log::{debug, error};
+use log::{debug, error, LevelFilter};
 
 // Copyright 2021 Eray Erdin
 //
@@ -67,19 +67,23 @@ pub trait Application {
     fn destroy(&self) -> ApplicationResult<()>;
     fn invoke(&self) -> InvokeReturn {
         let logger = if cfg!(debug_assertions) {
-            Dispatch::new().format(|out, message, record| {
-                out.finish(format_args!(
-                    "[{}][{}] {}",
-                    record.target(),
-                    record.level(),
-                    message
-                ))
-            })
+            Dispatch::new()
+                .format(|out, message, record| {
+                    out.finish(format_args!(
+                        "[{}][{}] {}",
+                        record.level(),
+                        record.target(),
+                        message,
+                    ))
+                })
+                .level(LevelFilter::Trace)
         } else {
-            Dispatch::new().format(|out, message, _| {
-                // TODO append level to anything except info level
-                out.finish(format_args!("{}", message))
-            })
+            Dispatch::new()
+                .format(|out, message, _| {
+                    // TODO append level to anything except info level
+                    out.finish(format_args!("{}", message))
+                })
+                .level(LevelFilter::Warn)
         };
 
         debug!("Invoking the application...");
