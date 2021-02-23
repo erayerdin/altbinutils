@@ -15,6 +15,10 @@
 pub mod app;
 pub mod paths;
 
+pub const AFTER_HELP_LICENSE_TEXT: &str =
+    "This software is licensed under the terms of Apache License 2.0.
+To read the details, refer to: https://www.apache.org/licenses/LICENSE-2.0";
+
 pub enum ExitCodes {
     DirectoriesInitFailure,
     PathsFailure,

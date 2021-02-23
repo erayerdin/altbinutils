@@ -1,4 +1,9 @@
-use altbinutils::app::{Application, ApplicationResult};
+use altbinutils::{
+    app::{Application, ApplicationResult},
+    AFTER_HELP_LICENSE_TEXT,
+};
+use clap::{load_yaml, App};
+use log::debug;
 
 // Copyright 2021 Eray Erdin
 //
@@ -24,8 +29,22 @@ impl Rment {
 
 impl Application for Rment {
     fn run(&mut self) -> ApplicationResult<()> {
-        println!("Hello, world!");
-        Ok(())
+        debug!("Initializing rment...");
+        let metadata = load_yaml!("../metadata.yaml");
+        let app = App::from_yaml(metadata)
+            .version(env!("CARGO_PKG_VERSION"))
+            .about(env!("CARGO_PKG_DESCRIPTION"))
+            .author(env!("CARGO_PKG_AUTHORS"))
+            .after_help(AFTER_HELP_LICENSE_TEXT);
+
+        debug!("Parsing matches...");
+        match app.get_matches().subcommand() {
+            // TODO undo subcommand, refer: https://docs.rs/clap/2.33.3/clap/struct.ArgMatches.html#method.subcommand
+            _ => {
+                debug!("Running rment...");
+                Ok(())
+            }
+        }
     }
 }
 

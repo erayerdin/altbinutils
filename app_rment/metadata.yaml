@@ -1,0 +1,14 @@
+name: rment
+
+global_settings:
+  - ColoredHelp
+
+settings:
+  - ArgRequiredElseHelp
+  - VersionlessSubcommands
+
+args:
+  - ENTRY:
+      required: true
+      multiple: true
+      help: "the file or directory to be removed"
