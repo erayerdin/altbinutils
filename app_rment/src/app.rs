@@ -1,5 +1,4 @@
-use altbinutils::app::Application;
-use app_rment::app::Rment;
+use altbinutils::app::{Application, ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -15,14 +14,23 @@ use app_rment::app::Rment;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[quit::main]
-fn main() {
-    let mut app = Rment::new().unwrap_or_else(|e| {
-        quit::with_code(e.get_exit_code());
-    });
+pub struct Rment;
 
-    if let Err(e) = app.run() {
-        // TODO print message
-        quit::with_code(e.get_exit_code());
+impl Rment {
+    pub fn new() -> ApplicationResult<Self> {
+        Ok(Self)
+    }
+}
+
+impl Application for Rment {
+    fn run(&mut self) -> ApplicationResult<()> {
+        println!("Hello, world!");
+        Ok(())
+    }
+}
+
+impl Drop for Rment {
+    fn drop(&mut self) {
+        ()
     }
 }
