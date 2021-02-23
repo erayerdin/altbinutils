@@ -5,6 +5,9 @@ authors = ["Eray Erdin <eraygezer.94@gmail.com>"]
 edition = "2018"
 description = "Alternative Binary Utilities"
 
+[workspace]
+members = ["app_rment"]
+
 [dependencies]
 directories = "3.0.1"
 log = "0.4.14"

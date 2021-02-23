@@ -1,0 +1,13 @@
+[package]
+name = "app_rment"
+version = "0.1.0-alpha.1"
+authors = ["Eray Erdin <eraygezer.94@gmail.com>"]
+edition = "2018"
+description = "Removes files and directories."
+
+[[bin]]
+name = "rment"
+path = "src/main.rs"
+
+[dependencies]
+altbinutils = { path = ".." }
