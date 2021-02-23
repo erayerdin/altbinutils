@@ -1,7 +1,5 @@
 use std::process;
 
-use clap::ArgMatches;
-use fern::Dispatch;
 use log::{debug, error};
 
 // Copyright 2021 Eray Erdin
@@ -62,85 +60,34 @@ fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
 }
 
 pub trait Application {
-    fn init(&self, logger: Dispatch) -> ApplicationResult<ArgMatches>;
-    fn run(&self, matches: ArgMatches) -> ApplicationResult<()>;
+    fn run(&self) -> ApplicationResult<()>;
 }
 
+#[allow(drop_bounds)]
 pub fn invoke_application<A>(app: A) -> InvokeReturn
 where
     A: Application + Drop,
 {
-    let logger = if cfg!(debug_assertions) {
-        Dispatch::new().format(|out, message, record| {
-            out.finish(format_args!(
-                "[{}][{}] {}",
-                record.target(),
-                record.level(),
-                message
-            ))
-        })
-    } else {
-        Dispatch::new().format(|out, message, _| {
-            // TODO append level to anything except info level
-            out.finish(format_args!("{}", message))
-        })
-    };
-
-    debug!("Invoking the application...");
-
-    debug!("Initializing the application...");
-    match app.init(logger) {
-        Ok(m) => {
-            debug!("Finished the initialization of application successfully.");
-            debug!("Running the application...");
-
-            match app.run(m) {
-                Ok(_) => {
-                    debug!("Finished the running of application successfully.");
-                    (0, "".to_owned())
-                }
-                Err(e) => fail_invoke("run", e),
-            }
+    debug!("Running the application...");
+    match app.run() {
+        Ok(_) => {
+            debug!("Finished the running of application successfully.");
+            (0, "".to_owned())
         }
-        Err(e) => fail_invoke("initialize", e),
+        Err(e) => fail_invoke("run", e),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::App;
     use rstest::*;
 
-    struct InitFailApp;
     struct RunFailApp;
     struct SuccessfulApp;
 
-    impl Application for InitFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Err(ApplicationError::InitError {
-                exit_code: 100,
-                message: "init failure".to_owned(),
-            })
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-    }
-
-    impl Drop for InitFailApp {
-        fn drop(&mut self) {
-            ()
-        }
-    }
-
     impl Application for RunFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("runfailapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
+        fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
@@ -155,11 +102,7 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("successfulapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
+        fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
     }
@@ -168,15 +111,6 @@ mod tests {
         fn drop(&mut self) {
             ()
         }
-    }
-
-    #[rstest]
-    fn test_init_fail() {
-        let app = InitFailApp;
-        let (exit_code, message) = invoke_application(app);
-
-        assert_eq!(message, "init failure");
-        assert_eq!(exit_code, 100);
     }
 
     #[rstest]
