@@ -1,8 +1,4 @@
-use std::process;
-
-use clap::ArgMatches;
-use fern::Dispatch;
-use log::{debug, error, LevelFilter};
+use log::{debug, error};
 
 // Copyright 2021 Eray Erdin
 //
@@ -45,75 +41,24 @@ impl ApplicationError {
 
 pub type ApplicationResult<T> = Result<T, ApplicationError>;
 
-type InvokeReturn = (i32, String);
-
-fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
-    let exit_code = err.get_exit_code();
-    let message = err.get_message();
-
-    error!("Failed to {} the application.", step);
-    error!("{}", message);
-
-    if cfg!(not(test)) {
-        process::exit(exit_code);
-    }
-
-    (exit_code, message)
+pub trait Application {
+    fn run(&self) -> ApplicationResult<()>;
 }
 
-pub trait Application {
-    fn init(&self, logger: Dispatch) -> ApplicationResult<ArgMatches>;
-    fn run(&self, matches: ArgMatches) -> ApplicationResult<()>;
-    fn destroy(&self) -> ApplicationResult<()>;
-    fn invoke(&self) -> InvokeReturn {
-        let logger = if cfg!(debug_assertions) {
-            Dispatch::new()
-                .format(|out, message, record| {
-                    out.finish(format_args!(
-                        "[{}][{}] {}",
-                        record.level(),
-                        record.target(),
-                        message,
-                    ))
-                })
-                .level(LevelFilter::Trace)
-        } else {
-            Dispatch::new()
-                .format(|out, message, _| {
-                    // TODO append level to anything except info level
-                    out.finish(format_args!("{}", message))
-                })
-                .level(LevelFilter::Warn)
-        };
-
-        debug!("Invoking the application...");
-
-        debug!("Initializing the application...");
-        match self.init(logger) {
-            Ok(m) => {
-                debug!("Finished the initialization of application successfully.");
-                debug!("Running the application...");
-
-                match self.run(m) {
-                    Ok(_) => {
-                        debug!("Finished the running of application successfully.");
-                        debug!("Destroying the application...");
-
-                        match self.destroy() {
-                            Ok(_) => {
-                                debug!("Finished the destroying of application successfully.");
-                                (0, "".to_owned())
-                            }
-                            Err(e) => fail_invoke("destroy", e),
-                        }
-                    }
-                    Err(e) => fail_invoke("run", e),
-                }
-            }
-            Err(e) => match self.destroy() {
-                Ok(_) => fail_invoke("initialize", e),
-                Err(e) => fail_invoke("destroy", e),
-            },
+#[allow(drop_bounds)]
+pub fn invoke_application<A>(app: A) -> i32
+where
+    A: Application + Drop,
+{
+    debug!("Running the application...");
+    match app.run() {
+        Ok(_) => {
+            debug!("Finished running the application successfully.");
+            0
+        }
+        Err(e) => {
+            error!("Failed to run the application.");
+            e.get_exit_code()
         }
     }
 }
@@ -121,142 +66,51 @@ pub trait Application {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::App;
     use rstest::*;
 
-    struct InitFailApp;
     struct RunFailApp;
-    struct DestroyFailApp;
-    struct InitDestroyFailApp;
     struct SuccessfulApp;
 
-    impl Application for InitFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Err(ApplicationError::InitError {
-                exit_code: 100,
-                message: "init failure".to_owned(),
-            })
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Ok(())
-        }
-    }
-
     impl Application for RunFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("runfailapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
+        fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
             })
         }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Ok(())
-        }
     }
 
-    impl Application for DestroyFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("destroyfailapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Err(ApplicationError::DestroyError {
-                exit_code: 300,
-                message: "destroy failure".to_owned(),
-            })
-        }
-    }
-
-    impl Application for InitDestroyFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Err(ApplicationError::InitError {
-                exit_code: 400,
-                message: "init failure".to_owned(),
-            })
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Err(ApplicationError::DestroyError {
-                exit_code: 500,
-                message: "init destroy failure".to_owned(),
-            })
+    impl Drop for RunFailApp {
+        fn drop(&mut self) {
+            ()
         }
     }
 
     impl Application for SuccessfulApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("successfulapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
+        fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
     }
 
-    #[rstest]
-    fn test_init_fail() {
-        let app = InitFailApp;
-        let (exit_code, message) = app.invoke();
-
-        assert_eq!(message, "init failure");
-        assert_eq!(exit_code, 100);
+    impl Drop for SuccessfulApp {
+        fn drop(&mut self) {
+            ()
+        }
     }
 
     #[rstest]
     fn test_run_fail() {
         let app = RunFailApp;
-        let (exit_code, message) = app.invoke();
+        let exit_code = invoke_application(app);
 
-        assert_eq!(message, "run failure");
         assert_eq!(exit_code, 200);
-    }
-
-    #[rstest]
-    fn test_destroy_fail() {
-        let app = DestroyFailApp;
-        let (exit_code, message) = app.invoke();
-
-        assert_eq!(message, "destroy failure");
-        assert_eq!(exit_code, 300);
-    }
-
-    #[rstest]
-    fn test_init_destroy_fail() {
-        let app = InitDestroyFailApp;
-        let (exit_code, message) = app.invoke();
-
-        assert_eq!(message, "init destroy failure");
-        assert_eq!(exit_code, 500);
     }
 
     #[rstest]
     fn test_successful_app() {
         let app = SuccessfulApp;
-        let (exit_code, message) = app.invoke();
+        let exit_code = invoke_application(app);
 
         assert_eq!(exit_code, 0);
-        assert_eq!(message, "");
     }
 }
