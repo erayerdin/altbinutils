@@ -1,5 +1,3 @@
-use std::process;
-
 use log::{debug, error};
 
 // Copyright 2021 Eray Erdin
@@ -43,38 +41,25 @@ impl ApplicationError {
 
 pub type ApplicationResult<T> = Result<T, ApplicationError>;
 
-type InvokeReturn = (i32, String);
-
-fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
-    let exit_code = err.get_exit_code();
-    let message = err.get_message();
-
-    error!("Failed to {} the application.", step);
-    error!("{}", message);
-
-    if cfg!(not(test)) {
-        process::exit(exit_code);
-    }
-
-    (exit_code, message)
-}
-
 pub trait Application {
     fn run(&self) -> ApplicationResult<()>;
 }
 
 #[allow(drop_bounds)]
-pub fn invoke_application<A>(app: A) -> InvokeReturn
+pub fn invoke_application<A>(app: A) -> i32
 where
     A: Application + Drop,
 {
     debug!("Running the application...");
     match app.run() {
         Ok(_) => {
-            debug!("Finished the running of application successfully.");
-            (0, "".to_owned())
+            debug!("Finished running the application successfully.");
+            0
         }
-        Err(e) => fail_invoke("run", e),
+        Err(e) => {
+            error!("Failed to run the application.");
+            e.get_exit_code()
+        }
     }
 }
 
@@ -116,18 +101,16 @@ mod tests {
     #[rstest]
     fn test_run_fail() {
         let app = RunFailApp;
-        let (exit_code, message) = invoke_application(app);
+        let exit_code = invoke_application(app);
 
-        assert_eq!(message, "run failure");
         assert_eq!(exit_code, 200);
     }
 
     #[rstest]
     fn test_successful_app() {
         let app = SuccessfulApp;
-        let (exit_code, message) = invoke_application(app);
+        let exit_code = invoke_application(app);
 
         assert_eq!(exit_code, 0);
-        assert_eq!(message, "");
     }
 }
