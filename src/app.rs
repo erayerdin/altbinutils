@@ -42,11 +42,11 @@ impl ApplicationError {
 pub type ApplicationResult<T> = Result<T, ApplicationError>;
 
 pub trait Application {
-    fn run(&self) -> ApplicationResult<()>;
+    fn run(&mut self) -> ApplicationResult<()>;
 }
 
 #[allow(drop_bounds)]
-pub fn invoke_application<A>(app: A) -> i32
+pub fn invoke_application<A>(mut app: A) -> i32
 where
     A: Application + Drop,
 {
@@ -72,7 +72,7 @@ mod tests {
     struct SuccessfulApp;
 
     impl Application for RunFailApp {
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&mut self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
@@ -87,7 +87,7 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&mut self) -> ApplicationResult<()> {
             Ok(())
         }
     }
