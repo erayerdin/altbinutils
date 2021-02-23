@@ -64,7 +64,6 @@ fn fail_invoke(step: &str, err: ApplicationError) -> InvokeReturn {
 pub trait Application {
     fn init(&self, logger: Dispatch) -> ApplicationResult<ArgMatches>;
     fn run(&self, matches: ArgMatches) -> ApplicationResult<()>;
-    fn destroy(&self) -> ApplicationResult<()>;
 }
 
 pub fn invoke_application<A>(app: A) -> InvokeReturn
@@ -98,23 +97,12 @@ where
             match app.run(m) {
                 Ok(_) => {
                     debug!("Finished the running of application successfully.");
-                    debug!("Destroying the application...");
-
-                    match app.destroy() {
-                        Ok(_) => {
-                            debug!("Finished the destroying of application successfully.");
-                            (0, "".to_owned())
-                        }
-                        Err(e) => fail_invoke("destroy", e),
-                    }
+                    (0, "".to_owned())
                 }
                 Err(e) => fail_invoke("run", e),
             }
         }
-        Err(e) => match app.destroy() {
-            Ok(_) => fail_invoke("initialize", e),
-            Err(e) => fail_invoke("destroy", e),
-        },
+        Err(e) => fail_invoke("initialize", e),
     }
 }
 
@@ -126,8 +114,6 @@ mod tests {
 
     struct InitFailApp;
     struct RunFailApp;
-    struct DestroyFailApp;
-    struct InitDestroyFailApp;
     struct SuccessfulApp;
 
     impl Application for InitFailApp {
@@ -139,10 +125,6 @@ mod tests {
         }
 
         fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
             Ok(())
         }
     }
@@ -164,62 +146,9 @@ mod tests {
                 message: "run failure".to_owned(),
             })
         }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Ok(())
-        }
     }
 
     impl Drop for RunFailApp {
-        fn drop(&mut self) {
-            ()
-        }
-    }
-
-    impl Application for DestroyFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Ok(App::new("destroyfailapp").get_matches())
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Err(ApplicationError::DestroyError {
-                exit_code: 300,
-                message: "destroy failure".to_owned(),
-            })
-        }
-    }
-
-    impl Drop for DestroyFailApp {
-        fn drop(&mut self) {
-            ()
-        }
-    }
-
-    impl Application for InitDestroyFailApp {
-        fn init(&self, _: Dispatch) -> ApplicationResult<ArgMatches> {
-            Err(ApplicationError::InitError {
-                exit_code: 400,
-                message: "init failure".to_owned(),
-            })
-        }
-
-        fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
-            Err(ApplicationError::DestroyError {
-                exit_code: 500,
-                message: "init destroy failure".to_owned(),
-            })
-        }
-    }
-
-    impl Drop for InitDestroyFailApp {
         fn drop(&mut self) {
             ()
         }
@@ -231,10 +160,6 @@ mod tests {
         }
 
         fn run(&self, _: ArgMatches) -> ApplicationResult<()> {
-            Ok(())
-        }
-
-        fn destroy(&self) -> ApplicationResult<()> {
             Ok(())
         }
     }
@@ -261,24 +186,6 @@ mod tests {
 
         assert_eq!(message, "run failure");
         assert_eq!(exit_code, 200);
-    }
-
-    #[rstest]
-    fn test_destroy_fail() {
-        let app = DestroyFailApp;
-        let (exit_code, message) = invoke_application(app);
-
-        assert_eq!(message, "destroy failure");
-        assert_eq!(exit_code, 300);
-    }
-
-    #[rstest]
-    fn test_init_destroy_fail() {
-        let app = InitDestroyFailApp;
-        let (exit_code, message) = invoke_application(app);
-
-        assert_eq!(message, "init destroy failure");
-        assert_eq!(exit_code, 500);
     }
 
     #[rstest]
