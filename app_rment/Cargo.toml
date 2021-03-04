@@ -12,5 +12,13 @@ path = "src/main.rs"
 [dependencies]
 altbinutils = { path = ".." }
 clap = { version = "2.33.3", features = ["yaml"] }
+colored = "2.0.0"
+indicatif = "0.15.0"
 log = "0.4.14"
+fern = "0.6.0"
+path-dedot = "3.0.7"
 quit = "1.1.2"
+
+[dev-dependencies]
+directories = "3.0.1"
+rstest = "0.6.4"
