@@ -70,7 +70,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    exit_code: ExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize ProjectDirs.".to_owned(),
                 })
             }
@@ -80,7 +80,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    exit_code: ExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize UserDirs.".to_owned(),
                 })
             }
@@ -113,7 +113,7 @@ impl Paths {
                 debug!("Creating base {} directory...", entry.get_repr());
                 if let Err(e) = fs::create_dir_all(base_dir.clone()) {
                     return Err(ApplicationError::InitError {
-                        exit_code: ExitCodes::PathsFailure.into(),
+                        exit_code: ExitCodes::PathsFailure as i32,
                         message: format!("Could not create base directory. {}", e),
                     });
                 }

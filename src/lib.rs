@@ -21,17 +21,7 @@ pub const AFTER_HELP_LICENSE_TEXT: &str =
 To read the details, refer to: https://www.apache.org/licenses/LICENSE-2.0";
 
 pub enum ExitCodes {
-    DirectoriesInitFailure,
-    PathsFailure,
-    LogInitFailure,
-}
-
-impl From<ExitCodes> for i32 {
-    fn from(e: ExitCodes) -> Self {
-        match e {
-            ExitCodes::DirectoriesInitFailure => -2,
-            ExitCodes::PathsFailure => -3,
-            ExitCodes::LogInitFailure => -4,
-        }
-    }
+    DirectoriesFailure = -2,
+    PathsFailure = -3,
+    LogFailure = -4,
 }
