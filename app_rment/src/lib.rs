@@ -13,7 +13,9 @@
 // limitations under the License.
 
 pub mod app;
+pub mod pbar;
 
 pub enum ExitCodes {
     ClapMatchFailure = -10,
+    CwdFailure = -11,
 }
