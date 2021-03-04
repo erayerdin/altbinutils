@@ -1,5 +1,7 @@
 use clap::Values;
 
+use crate::app::ApplicationResult;
+
 // Copyright 2021 Eray Erdin
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +19,7 @@ use clap::Values;
 pub trait Sanitizer {
     type Target;
 
-    fn sanitize(self, source: Values) -> Self::Target;
+    fn sanitize(self, source: Values) -> ApplicationResult<Self::Target>;
 }
 
 #[cfg(test)]
@@ -33,15 +35,15 @@ mod tests {
     impl Sanitizer for EntrySanitizer {
         type Target = Vec<PathBuf>;
 
-        fn sanitize(self, source: Values) -> Self::Target {
-            source
+        fn sanitize(self, source: Values) -> ApplicationResult<Self::Target> {
+            Ok(source
                 .into_iter()
                 .map(|v| {
                     let mut path = PathBuf::new();
                     path.push(v);
                     path
                 })
-                .collect()
+                .collect())
         }
     }
 
@@ -57,7 +59,7 @@ mod tests {
             .values_of("entry")
             .expect("Could not get values of entry.");
         let sanitizer = EntrySanitizer;
-        let paths = sanitizer.sanitize(values);
+        let paths = sanitizer.sanitize(values).expect("Could not get paths.");
 
         assert_eq!(paths[0].to_string_lossy(), "/foo");
         assert_eq!(paths[1].to_string_lossy(), "/bar");
