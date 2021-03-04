@@ -23,6 +23,7 @@ To read the details, refer to: https://www.apache.org/licenses/LICENSE-2.0";
 pub enum ExitCodes {
     DirectoriesInitFailure,
     PathsFailure,
+    LogInitFailure,
 }
 
 impl From<ExitCodes> for i32 {
@@ -30,6 +31,7 @@ impl From<ExitCodes> for i32 {
         match e {
             ExitCodes::DirectoriesInitFailure => -2,
             ExitCodes::PathsFailure => -3,
+            ExitCodes::LogInitFailure => -4,
         }
     }
 }
