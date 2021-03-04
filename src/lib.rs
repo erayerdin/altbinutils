@@ -14,6 +14,7 @@
 
 pub mod app;
 pub mod paths;
+pub mod sanitizer;
 
 pub const AFTER_HELP_LICENSE_TEXT: &str =
     "This software is licensed under the terms of Apache License 2.0.

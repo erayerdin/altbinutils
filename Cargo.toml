@@ -9,6 +9,7 @@ description = "Alternative Binary Utilities"
 members = ["app_rment"]
 
 [dependencies]
+clap = "2.33.3"
 directories = "3.0.1"
 log = "0.4.14"
 
