@@ -5,7 +5,7 @@ use log::{debug, trace};
 
 use crate::{
     app::{ApplicationError, ApplicationResult},
-    ExitCodes,
+    CommonExitCodes,
 };
 
 // Copyright 2021 Eray Erdin
@@ -70,7 +70,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesFailure as i32,
+                    exit_code: CommonExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize ProjectDirs.".to_owned(),
                 })
             }
@@ -80,7 +80,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesFailure as i32,
+                    exit_code: CommonExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize UserDirs.".to_owned(),
                 })
             }
@@ -113,7 +113,7 @@ impl Paths {
                 debug!("Creating base {} directory...", entry.get_repr());
                 if let Err(e) = fs::create_dir_all(base_dir.clone()) {
                     return Err(ApplicationError::InitError {
-                        exit_code: ExitCodes::PathsFailure as i32,
+                        exit_code: CommonExitCodes::PathFailure as i32,
                         message: format!("Could not create base directory. {}", e),
                     });
                 }

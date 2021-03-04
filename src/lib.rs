@@ -20,8 +20,8 @@ pub const AFTER_HELP_LICENSE_TEXT: &str =
     "This software is licensed under the terms of Apache License 2.0.
 To read the details, refer to: https://www.apache.org/licenses/LICENSE-2.0";
 
-pub enum ExitCodes {
+pub enum CommonExitCodes {
     DirectoriesFailure = -2,
-    PathsFailure = -3,
+    PathFailure = -3,
     LogFailure = -4,
 }
