@@ -14,6 +14,7 @@
 
 pub mod app;
 pub mod pbar;
+pub mod sanitizers;
 
 pub enum ExitCodes {
     ClapMatchFailure = -10,
