@@ -1,6 +1,6 @@
 use log::{debug, error};
 
-use crate::error::ApplicationError;
+use crate::result::ApplicationResult;
 
 // Copyright 2021 Eray Erdin
 //
@@ -15,8 +15,6 @@ use crate::error::ApplicationError;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-pub type ApplicationResult<T> = Result<T, ApplicationError>;
 
 pub trait Application {
     fn run(&self) -> ApplicationResult<()>;

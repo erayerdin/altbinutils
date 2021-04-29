@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
 
-use crate::{app::ApplicationResult, error::ApplicationError, CommonExitCodes};
+use crate::{error::ApplicationError, result::ApplicationResult, CommonExitCodes};
 
 // Copyright 2021 Eray Erdin
 //

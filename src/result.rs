@@ -1,3 +1,5 @@
+use crate::error::ApplicationError;
+
 // Copyright 2021 Eray Erdin
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +14,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod app;
-pub mod error;
-pub mod paths;
-pub mod result;
-
-pub enum CommonExitCodes {
-    DirectoriesInitFailure = -2,
-    PathsFailure = -3,
-}
+pub type ApplicationResult<T> = Result<T, ApplicationError>;
