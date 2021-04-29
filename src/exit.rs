@@ -13,6 +13,6 @@
 // limitations under the License.
 
 pub enum CommonExitCodes {
-    DirectoriesInitFailure = -2,
+    DirectoriesFailure = -2,
     PathsFailure = -3,
 }

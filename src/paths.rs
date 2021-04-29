@@ -67,7 +67,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: CommonExitCodes::DirectoriesInitFailure as i32,
+                    exit_code: CommonExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize ProjectDirs.".to_owned(),
                 })
             }
@@ -77,7 +77,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: CommonExitCodes::DirectoriesInitFailure as i32,
+                    exit_code: CommonExitCodes::DirectoriesFailure as i32,
                     message: "Could not initialize UserDirs.".to_owned(),
                 })
             }
