@@ -16,15 +16,6 @@ pub mod app;
 pub mod paths;
 
 pub enum ExitCodes {
-    DirectoriesInitFailure,
-    PathsFailure,
-}
-
-impl From<ExitCodes> for i32 {
-    fn from(e: ExitCodes) -> Self {
-        match e {
-            ExitCodes::DirectoriesInitFailure => -2,
-            ExitCodes::PathsFailure => -3,
-        }
-    }
+    DirectoriesInitFailure = -2,
+    PathsFailure = -3,
 }

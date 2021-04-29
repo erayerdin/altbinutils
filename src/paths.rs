@@ -70,7 +70,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    exit_code: ExitCodes::DirectoriesInitFailure as i32,
                     message: "Could not initialize ProjectDirs.".to_owned(),
                 })
             }
@@ -80,7 +80,7 @@ impl Paths {
             Some(d) => d,
             None => {
                 return Err(ApplicationError::InitError {
-                    exit_code: ExitCodes::DirectoriesInitFailure.into(),
+                    exit_code: ExitCodes::DirectoriesInitFailure as i32,
                     message: "Could not initialize UserDirs.".to_owned(),
                 })
             }
