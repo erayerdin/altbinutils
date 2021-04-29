@@ -14,5 +14,5 @@
 
 pub enum CommonExitCodes {
     DirectoriesFailure = -2,
-    PathsFailure = -3,
+    StdFsFailure = -3,
 }
