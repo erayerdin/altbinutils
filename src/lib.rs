@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod app;
+pub mod error;
 pub mod paths;
 
 pub enum CommonExitCodes {
