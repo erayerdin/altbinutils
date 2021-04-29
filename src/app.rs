@@ -17,7 +17,10 @@ use crate::result::ApplicationResult;
 // limitations under the License.
 
 pub trait Application {
+    type ConfigType;
+
     fn run(&self) -> ApplicationResult<()>;
+    fn get_config() -> ApplicationResult<Self::ConfigType>;
 }
 
 #[allow(drop_bounds)]
@@ -45,15 +48,23 @@ mod tests {
     use super::*;
     use rstest::*;
 
+    struct EmptyConfig;
+
     struct RunFailApp;
     struct SuccessfulApp;
 
     impl Application for RunFailApp {
+        type ConfigType = EmptyConfig;
+
         fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
             })
+        }
+
+        fn get_config() -> ApplicationResult<Self::ConfigType> {
+            unimplemented!()
         }
     }
 
@@ -64,8 +75,14 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
+        type ConfigType = EmptyConfig;
+
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
+        }
+
+        fn get_config() -> ApplicationResult<Self::ConfigType> {
+            unimplemented!()
         }
     }
 
