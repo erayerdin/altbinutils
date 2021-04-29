@@ -40,6 +40,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::error::ApplicationError;
+
     use super::*;
     use rstest::*;
 
