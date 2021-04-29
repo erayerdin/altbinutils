@@ -15,7 +15,7 @@
 pub mod app;
 pub mod paths;
 
-pub enum ExitCodes {
+pub enum CommonExitCodes {
     DirectoriesInitFailure = -2,
     PathsFailure = -3,
 }
