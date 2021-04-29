@@ -113,7 +113,7 @@ impl Paths {
                 debug!("Creating base {} directory...", entry.get_repr());
                 if let Err(e) = fs::create_dir_all(base_dir.clone()) {
                     return Err(ApplicationError::InitError {
-                        exit_code: CommonExitCodes::PathsFailure.into(),
+                        exit_code: CommonExitCodes::PathsFailure as i32,
                         message: format!("Could not create base directory. {}", e),
                     });
                 }
