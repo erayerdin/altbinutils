@@ -182,7 +182,7 @@ mod tests {
         assert_eq!(log_file.file_name(), Some(OsStr::new("app.log")));
     }
 
-    mod test_paths {
+    mod test_appdata {
         use super::*;
 
         #[rstest]
