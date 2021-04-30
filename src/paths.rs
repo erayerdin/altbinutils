@@ -23,6 +23,8 @@ const QUALIFIER: &str = "io.github";
 const ORGANIZATION: &str = "erayerdin";
 const APPLICATION: &str = "altbinutils";
 
+// TODO change str to Path
+/// An entry in application directory.
 #[derive(Debug)]
 pub enum Entry<'a> {
     Data(&'a str),
