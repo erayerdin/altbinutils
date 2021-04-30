@@ -13,7 +13,7 @@
 // limitations under the License.
 
 pub mod app;
+pub mod appdata;
 pub mod error;
 pub mod exit;
-pub mod paths;
 pub mod result;

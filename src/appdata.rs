@@ -23,7 +23,6 @@ const QUALIFIER: &str = "io.github";
 const ORGANIZATION: &str = "erayerdin";
 const APPLICATION: &str = "altbinutils";
 
-// TODO change str to Path
 /// An entry in application directory.
 #[derive(Debug)]
 pub enum Entry {
@@ -54,13 +53,13 @@ impl Entry {
 }
 
 /// Paths of an app.
-pub struct Paths {
+pub struct AppData {
     app_name: String,
     project_dirs: ProjectDirs,
     user_dirs: UserDirs,
 }
 
-impl Paths {
+impl AppData {
     pub fn new(app_name: &str) -> ApplicationResult<Self> {
         debug!("Initializing Paths for {}...", app_name);
         let app_name = app_name.to_owned();
@@ -125,7 +124,7 @@ impl Paths {
     }
 }
 
-pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<path::PathBuf> {
+pub fn get_config_file(paths: &AppData, home: bool) -> ApplicationResult<path::PathBuf> {
     debug!("Getting config file...");
     trace!("home: {}", home);
 
@@ -141,7 +140,7 @@ pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<path::Pat
     })
 }
 
-pub fn get_log_file(paths: &Paths) -> ApplicationResult<path::PathBuf> {
+pub fn get_log_file(paths: &AppData) -> ApplicationResult<path::PathBuf> {
     debug!("Getting log file...");
 
     paths.get_entry(Entry::Cache(path::PathBuf::from("app.log")))
@@ -157,14 +156,14 @@ mod tests {
     use rstest::*;
 
     #[fixture]
-    fn paths() -> Paths {
-        Paths::new("foo").expect("Could not initialize Paths.")
+    fn paths() -> AppData {
+        AppData::new("foo").expect("Could not initialize Paths.")
     }
 
     #[rstest(
         home => [true, false]
     )]
-    fn test_config_file(paths: Paths, home: bool) {
+    fn test_config_file(paths: AppData, home: bool) {
         let config_file = get_config_file(&paths, home).expect("Could not get config file.");
         let config_file_name = config_file.file_name();
 
@@ -178,7 +177,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_log_file(paths: Paths) {
+    fn test_log_file(paths: AppData) {
         let log_file = get_log_file(&paths).expect("Could not get log file.");
         assert_eq!(log_file.file_name(), Some(OsStr::new("app.log")));
     }
@@ -188,7 +187,7 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_data_dir(paths: Paths) {
+        fn test_data_dir(paths: AppData) {
             {
                 // setup
                 let path = paths
@@ -205,7 +204,7 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_cache_dir(paths: Paths) {
+        fn test_cache_dir(paths: AppData) {
             {
                 // setup
                 let path = paths
@@ -222,7 +221,7 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_config_dir(paths: Paths) {
+        fn test_config_dir(paths: AppData) {
             {
                 // setup
                 let path = paths
