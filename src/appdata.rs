@@ -156,15 +156,15 @@ mod tests {
     use rstest::*;
 
     #[fixture]
-    fn paths() -> AppData {
+    fn appdata() -> AppData {
         AppData::new("foo").expect("Could not initialize Paths.")
     }
 
     #[rstest(
         home => [true, false]
     )]
-    fn test_config_file(paths: AppData, home: bool) {
-        let config_file = get_config_file(&paths, home).expect("Could not get config file.");
+    fn test_config_file(appdata: AppData, home: bool) {
+        let config_file = get_config_file(&appdata, home).expect("Could not get config file.");
         let config_file_name = config_file.file_name();
 
         assert_eq!(
@@ -177,8 +177,8 @@ mod tests {
     }
 
     #[rstest]
-    fn test_log_file(paths: AppData) {
-        let log_file = get_log_file(&paths).expect("Could not get log file.");
+    fn test_log_file(appdata: AppData) {
+        let log_file = get_log_file(&appdata).expect("Could not get log file.");
         assert_eq!(log_file.file_name(), Some(OsStr::new("app.log")));
     }
 
@@ -187,16 +187,16 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_data_dir(paths: AppData) {
+        fn test_data_dir(appdata: AppData) {
             {
                 // setup
-                let path = paths
+                let path = appdata
                     .get_entry(Entry::Data(path::PathBuf::from("")))
                     .expect("Could not initialize data dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
-            let path = paths
+            let path = appdata
                 .get_entry(Entry::Data(path::PathBuf::from("")))
                 .expect("Could not initialize data dir.");
             assert!(path.exists());
@@ -204,16 +204,16 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_cache_dir(paths: AppData) {
+        fn test_cache_dir(appdata: AppData) {
             {
                 // setup
-                let path = paths
+                let path = appdata
                     .get_entry(Entry::Cache(path::PathBuf::from("")))
                     .expect("Could not initialize cache dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
-            let path = paths
+            let path = appdata
                 .get_entry(Entry::Cache(path::PathBuf::from("")))
                 .expect("Could not initialize cache dir.");
             assert!(path.exists());
@@ -221,16 +221,16 @@ mod tests {
 
         #[rstest]
         #[serial]
-        fn test_config_dir(paths: AppData) {
+        fn test_config_dir(appdata: AppData) {
             {
                 // setup
-                let path = paths
+                let path = appdata
                     .get_entry(Entry::Config(path::PathBuf::from("")))
                     .expect("Could not initialize config dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
-            let path = paths
+            let path = appdata
                 .get_entry(Entry::Config(path::PathBuf::from("")))
                 .expect("Could not initialize config dir.");
             assert!(path.exists());
