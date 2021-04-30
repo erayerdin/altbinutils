@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path};
 
 use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
@@ -26,14 +26,14 @@ const APPLICATION: &str = "altbinutils";
 // TODO change str to Path
 /// An entry in application directory.
 #[derive(Debug)]
-pub enum Entry<'a> {
-    Data(&'a str),
-    Config(&'a str),
-    Cache(&'a str),
-    Home(&'a str),
+pub enum Entry {
+    Data(path::PathBuf),
+    Config(path::PathBuf),
+    Cache(path::PathBuf),
+    Home(path::PathBuf),
 }
 
-impl Entry<'_> {
+impl Entry {
     fn get_repr(&self) -> &str {
         match self {
             Entry::Data(_) => "data",
@@ -43,12 +43,12 @@ impl Entry<'_> {
         }
     }
 
-    fn get_path(&self) -> &str {
+    fn get_path(&self) -> path::PathBuf {
         match self {
-            Entry::Data(p) => p,
-            Entry::Config(p) => p,
-            Entry::Cache(p) => p,
-            Entry::Home(p) => p,
+            Entry::Data(p) => p.clone(),
+            Entry::Config(p) => p.clone(),
+            Entry::Cache(p) => p.clone(),
+            Entry::Home(p) => p.clone(),
         }
     }
 }
@@ -92,7 +92,7 @@ impl Paths {
         })
     }
 
-    pub fn get_entry(&self, entry: Entry) -> ApplicationResult<PathBuf> {
+    pub fn get_entry(&self, entry: Entry) -> ApplicationResult<path::PathBuf> {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
 
@@ -125,7 +125,7 @@ impl Paths {
     }
 }
 
-pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<PathBuf> {
+pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<path::PathBuf> {
     debug!("Getting config file...");
     trace!("home: {}", home);
 
@@ -136,15 +136,15 @@ pub fn get_config_file(paths: &Paths, home: bool) -> ApplicationResult<PathBuf> 
     trace!("file name: {}", file_name);
 
     paths.get_entry(match home {
-        true => Entry::Home(&file_name),
-        false => Entry::Config(&file_name),
+        true => Entry::Home(path::PathBuf::from(file_name)),
+        false => Entry::Config(path::PathBuf::from(file_name)),
     })
 }
 
-pub fn get_log_file(paths: &Paths) -> ApplicationResult<PathBuf> {
+pub fn get_log_file(paths: &Paths) -> ApplicationResult<path::PathBuf> {
     debug!("Getting log file...");
 
-    paths.get_entry(Entry::Cache("app.log"))
+    paths.get_entry(Entry::Cache(path::PathBuf::from("app.log")))
 }
 
 #[cfg(test)]
@@ -192,13 +192,13 @@ mod tests {
             {
                 // setup
                 let path = paths
-                    .get_entry(Entry::Data(""))
+                    .get_entry(Entry::Data(path::PathBuf::from("")))
                     .expect("Could not initialize data dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = paths
-                .get_entry(Entry::Data(""))
+                .get_entry(Entry::Data(path::PathBuf::from("")))
                 .expect("Could not initialize data dir.");
             assert!(path.exists());
         }
@@ -209,13 +209,13 @@ mod tests {
             {
                 // setup
                 let path = paths
-                    .get_entry(Entry::Cache(""))
+                    .get_entry(Entry::Cache(path::PathBuf::from("")))
                     .expect("Could not initialize cache dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = paths
-                .get_entry(Entry::Cache(""))
+                .get_entry(Entry::Cache(path::PathBuf::from("")))
                 .expect("Could not initialize cache dir.");
             assert!(path.exists());
         }
@@ -226,13 +226,13 @@ mod tests {
             {
                 // setup
                 let path = paths
-                    .get_entry(Entry::Config(""))
+                    .get_entry(Entry::Config(path::PathBuf::from("")))
                     .expect("Could not initialize config dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = paths
-                .get_entry(Entry::Config(""))
+                .get_entry(Entry::Config(path::PathBuf::from("")))
                 .expect("Could not initialize config dir.");
             assert!(path.exists());
         }
