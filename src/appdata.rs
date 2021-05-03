@@ -108,63 +108,14 @@ impl AppData {
     }
 }
 
-pub fn get_config_file(paths: &AppData, home: bool) -> ApplicationResult<path::PathBuf> {
-    debug!("Getting config file...");
-    trace!("home: {}", home);
-
-    let file_name = match home {
-        true => format!(".{}.config.toml", paths.app_name),
-        false => format!("{}.config.toml", paths.app_name),
-    };
-    trace!("file name: {}", file_name);
-
-    paths.get_entry(
-        match home {
-            true => Entry::Home(path::PathBuf::from(file_name)),
-            false => Entry::Config(path::PathBuf::from(file_name)),
-        },
-        false,
-    )
-}
-
-pub fn get_log_file(paths: &AppData) -> ApplicationResult<path::PathBuf> {
-    debug!("Getting log file...");
-
-    paths.get_entry(Entry::Cache(path::PathBuf::from("app.log")), false)
-}
-
 #[cfg(test)]
 mod tests {
-    use std::ffi::OsStr;
-
     use super::*;
     use rstest::*;
 
     #[fixture]
     fn appdata() -> AppData {
         AppData::new("foo").expect("Could not initialize Paths.")
-    }
-
-    #[rstest(
-        home => [true, false]
-    )]
-    fn test_config_file(appdata: AppData, home: bool) {
-        let config_file = get_config_file(&appdata, home).expect("Could not get config file.");
-        let config_file_name = config_file.file_name();
-
-        assert_eq!(
-            config_file_name,
-            match home {
-                true => Some(OsStr::new(".foo.config.toml")),
-                false => Some(OsStr::new("foo.config.toml")),
-            }
-        );
-    }
-
-    #[rstest]
-    fn test_log_file(appdata: AppData) {
-        let log_file = get_log_file(&appdata).expect("Could not get log file.");
-        assert_eq!(log_file.file_name(), Some(OsStr::new("app.log")));
     }
 
     mod test_appdata {
