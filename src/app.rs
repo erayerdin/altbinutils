@@ -26,7 +26,12 @@ where
     A: Application<'a>,
 {
     debug!("Initializing the application...");
-    setup_panic!();
+    setup_panic!(Metadata {
+        name: env!("CARGO_PKG_NAME").into(),
+        version: env!("CARGO_PKG_VERSION").into(),
+        authors: env!("CARGO_PKG_AUTHORS").into(),
+        homepage: "".into()
+    });
 
     debug!("Running the application...");
     match app.run() {
