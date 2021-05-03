@@ -1,3 +1,4 @@
+use human_panic::setup_panic;
 use log::{debug, error};
 
 use crate::{appdata, result::ApplicationResult};
@@ -27,6 +28,9 @@ pub fn invoke_application<'a, A>(app: A) -> i32
 where
     A: Application<'a> + Drop,
 {
+    debug!("Initializing the application...");
+    setup_panic!();
+
     debug!("Running the application...");
     match app.run() {
         Ok(_) => {
