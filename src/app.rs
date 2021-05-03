@@ -1,7 +1,7 @@
 use human_panic::setup_panic;
 use log::{debug, error};
 
-use crate::{appdata, result::ApplicationResult};
+use crate::result::ApplicationResult;
 
 // Copyright 2021 Eray Erdin
 //
@@ -19,8 +19,6 @@ use crate::{appdata, result::ApplicationResult};
 
 pub trait Application<'a> {
     fn run(&self) -> ApplicationResult<()>;
-    fn name() -> &'a str;
-    fn appdata() -> ApplicationResult<appdata::AppData>;
 }
 
 pub fn invoke_application<'a, A>(app: A) -> i32
@@ -60,14 +58,6 @@ mod tests {
                 message: "run failure".to_owned(),
             })
         }
-
-        fn name() -> &'a str {
-            unimplemented!()
-        }
-
-        fn appdata() -> ApplicationResult<appdata::AppData> {
-            unimplemented!()
-        }
     }
 
     impl Drop for RunFailApp {
@@ -79,14 +69,6 @@ mod tests {
     impl<'a> Application<'a> for SuccessfulApp {
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
-        }
-
-        fn name() -> &'a str {
-            unimplemented!()
-        }
-
-        fn appdata() -> ApplicationResult<appdata::AppData> {
-            unimplemented!()
         }
     }
 
