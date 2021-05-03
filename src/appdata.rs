@@ -82,7 +82,12 @@ impl AppData {
         })
     }
 
-    pub fn get_entry(&self, entry: Entry, is_root: bool) -> ApplicationResult<path::PathBuf> {
+    /// Gets a specific entry from appdata directories.
+    ///
+    /// - **entry**: The type of entry.
+    /// - **is_root**: If `is_root`, then `altbinutils` directory will be returned, otherwise
+    /// the application's appdata directory will be returned.
+    pub fn get_entry(&self, entry: Entry, is_root: bool) -> path::PathBuf {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
         trace!("is root: {:?}", is_root);
@@ -98,7 +103,7 @@ impl AppData {
         base_dir.push(entry.get_path());
 
         if is_root {
-            return Ok(base_dir);
+            return base_dir;
         }
 
         base_dir.push(format!("{}", self.app_name));
@@ -106,7 +111,7 @@ impl AppData {
 
         base_dir.push(entry.get_path());
 
-        Ok(base_dir)
+        base_dir
     }
 }
 
@@ -138,15 +143,11 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata
-                .get_entry(Entry::Data(empty_pathbuf.clone()), is_root)
-                .expect("Could not initialize data dir.");
+            let path = appdata.get_entry(Entry::Data(empty_pathbuf.clone()), is_root);
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata
-            .get_entry(Entry::Data(empty_pathbuf), is_root)
-            .expect("Could not initialize data dir.");
+        let path = appdata.get_entry(Entry::Data(empty_pathbuf), is_root);
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
@@ -203,15 +204,11 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata
-                .get_entry(Entry::Cache(empty_pathbuf.clone()), is_root)
-                .expect("Could not initialize cache dir.");
+            let path = appdata.get_entry(Entry::Cache(empty_pathbuf.clone()), is_root);
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata
-            .get_entry(Entry::Cache(empty_pathbuf), is_root)
-            .expect("Could not initialize cache dir.");
+        let path = appdata.get_entry(Entry::Cache(empty_pathbuf), is_root);
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
@@ -268,15 +265,11 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata
-                .get_entry(Entry::Config(empty_pathbuf.clone()), is_root)
-                .expect("Could not initialize config dir.");
+            let path = appdata.get_entry(Entry::Config(empty_pathbuf.clone()), is_root);
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata
-            .get_entry(Entry::Config(empty_pathbuf), is_root)
-            .expect("Could not initialize config dir.");
+        let path = appdata.get_entry(Entry::Config(empty_pathbuf), is_root);
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
