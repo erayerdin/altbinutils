@@ -20,7 +20,7 @@ pub trait Application {
     type ConfigType;
 
     fn run(&self) -> ApplicationResult<()>;
-    fn get_config() -> ApplicationResult<Self::ConfigType>;
+    fn config() -> ApplicationResult<Self::ConfigType>;
 }
 
 #[allow(drop_bounds)]
@@ -63,7 +63,7 @@ mod tests {
             })
         }
 
-        fn get_config() -> ApplicationResult<Self::ConfigType> {
+        fn config() -> ApplicationResult<Self::ConfigType> {
             unimplemented!()
         }
     }
@@ -81,7 +81,7 @@ mod tests {
             Ok(())
         }
 
-        fn get_config() -> ApplicationResult<Self::ConfigType> {
+        fn config() -> ApplicationResult<Self::ConfigType> {
             unimplemented!()
         }
     }
