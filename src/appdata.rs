@@ -137,8 +137,6 @@ pub fn get_log_file(paths: &AppData) -> ApplicationResult<path::PathBuf> {
 mod tests {
     use std::ffi::OsStr;
 
-    use serial_test::serial;
-
     use super::*;
     use rstest::*;
 
@@ -182,7 +180,6 @@ mod tests {
         #[rstest]
         #[case(true)]
         #[case(false)]
-        #[serial]
         fn test_data_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
@@ -206,7 +203,6 @@ mod tests {
         #[rstest]
         #[case(true)]
         #[case(false)]
-        #[serial]
         fn test_cache_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
@@ -230,7 +226,6 @@ mod tests {
         #[rstest]
         #[case(true)]
         #[case(false)]
-        #[serial]
         fn test_config_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
