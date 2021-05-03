@@ -23,10 +23,9 @@ pub trait Application<'a> {
     fn appdata() -> ApplicationResult<appdata::AppData>;
 }
 
-#[allow(drop_bounds)]
 pub fn invoke_application<'a, A>(app: A) -> i32
 where
-    A: Application<'a> + Drop,
+    A: Application<'a>,
 {
     debug!("Initializing the application...");
     setup_panic!();
