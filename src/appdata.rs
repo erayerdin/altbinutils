@@ -154,7 +154,14 @@ mod tests {
                 )
             };
             assert_eq!(terminal, "foo");
-            assert_eq!(parent, "altbinutils");
+            assert_eq!(
+                parent,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         }
     }
 
@@ -186,7 +193,14 @@ mod tests {
                 )
             };
             assert_eq!(terminal, "foo");
-            assert_eq!(parent, "altbinutils");
+            assert_eq!(
+                parent,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         }
     }
 
@@ -218,7 +232,14 @@ mod tests {
                 )
             };
             assert_eq!(terminal, "foo");
-            assert_eq!(parent, "altbinutils");
+            assert_eq!(
+                parent,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         }
     }
 }
