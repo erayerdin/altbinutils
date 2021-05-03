@@ -52,7 +52,7 @@ pub struct AppData {
 
 impl AppData {
     pub fn new(app_name: &str) -> ApplicationResult<Self> {
-        debug!("Initializing Paths for {}...", app_name);
+        debug!("Initializing AppData paths for {}...", app_name);
         let app_name = app_name.to_owned();
 
         let project_dirs = match ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION) {
@@ -85,6 +85,7 @@ impl AppData {
     pub fn get_entry(&self, entry: Entry, is_root: bool) -> ApplicationResult<path::PathBuf> {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
+        trace!("is root: {:?}", is_root);
 
         let mut base_dir = match entry {
             Entry::Data(_) => self.project_dirs.data_local_dir(),
@@ -94,8 +95,9 @@ impl AppData {
         }
         .to_path_buf();
 
+        base_dir.push(entry.get_path());
+
         if is_root {
-            base_dir.push(entry.get_path());
             return Ok(base_dir);
         }
 
