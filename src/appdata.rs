@@ -145,9 +145,9 @@ mod tests {
                 .expect("Could not initialize data dir.");
 
             if is_root {
-                assert!(path.ends_with("altbinutils"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
             } else {
-                assert!(path.ends_with("altbinutils/foo"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
             }
         }
 
