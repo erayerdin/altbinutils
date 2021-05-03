@@ -91,7 +91,7 @@ impl AppData {
         })
     }
 
-    pub fn get_entry(&self, entry: Entry) -> ApplicationResult<path::PathBuf> {
+    pub fn get_entry(&self, entry: Entry, is_root: bool) -> ApplicationResult<path::PathBuf> {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
 
@@ -102,6 +102,12 @@ impl AppData {
             Entry::Home(_) => self.user_dirs.home_dir(),
         }
         .to_path_buf();
+
+        if is_root {
+            base_dir.push(entry.get_path());
+            return Ok(base_dir);
+        }
+
         base_dir.push(format!("{}", self.app_name));
         trace!("base dir: {}", base_dir.to_string_lossy());
 
@@ -134,16 +140,19 @@ pub fn get_config_file(paths: &AppData, home: bool) -> ApplicationResult<path::P
     };
     trace!("file name: {}", file_name);
 
-    paths.get_entry(match home {
-        true => Entry::Home(path::PathBuf::from(file_name)),
-        false => Entry::Config(path::PathBuf::from(file_name)),
-    })
+    paths.get_entry(
+        match home {
+            true => Entry::Home(path::PathBuf::from(file_name)),
+            false => Entry::Config(path::PathBuf::from(file_name)),
+        },
+        false,
+    )
 }
 
 pub fn get_log_file(paths: &AppData) -> ApplicationResult<path::PathBuf> {
     debug!("Getting log file...");
 
-    paths.get_entry(Entry::Cache(path::PathBuf::from("app.log")))
+    paths.get_entry(Entry::Cache(path::PathBuf::from("app.log")), false)
 }
 
 #[cfg(test)]
@@ -185,55 +194,81 @@ mod tests {
     mod test_appdata {
         use super::*;
 
+        #[fixture]
+        fn empty_pathbuf() -> path::PathBuf {
+            path::PathBuf::from("")
+        }
+
         #[rstest]
+        #[case(true)]
+        #[case(false)]
         #[serial]
-        fn test_data_dir(appdata: AppData) {
+        fn test_data_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
                 let path = appdata
-                    .get_entry(Entry::Data(path::PathBuf::from("")))
+                    .get_entry(Entry::Data(empty_pathbuf.clone()), is_root)
                     .expect("Could not initialize data dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = appdata
-                .get_entry(Entry::Data(path::PathBuf::from("")))
+                .get_entry(Entry::Data(empty_pathbuf), is_root)
                 .expect("Could not initialize data dir.");
-            assert!(path.exists());
+
+            if is_root {
+                assert!(path.ends_with("altbinutils"));
+            } else {
+                assert!(path.ends_with("altbinutils/foo"));
+            }
         }
 
         #[rstest]
+        #[case(true)]
+        #[case(false)]
         #[serial]
-        fn test_cache_dir(appdata: AppData) {
+        fn test_cache_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
                 let path = appdata
-                    .get_entry(Entry::Cache(path::PathBuf::from("")))
+                    .get_entry(Entry::Cache(empty_pathbuf.clone()), is_root)
                     .expect("Could not initialize cache dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = appdata
-                .get_entry(Entry::Cache(path::PathBuf::from("")))
+                .get_entry(Entry::Cache(empty_pathbuf), is_root)
                 .expect("Could not initialize cache dir.");
-            assert!(path.exists());
+
+            if is_root {
+                assert!(path.ends_with("altbinutils"));
+            } else {
+                assert!(path.ends_with("altbinutils/foo"));
+            }
         }
 
         #[rstest]
+        #[case(true)]
+        #[case(false)]
         #[serial]
-        fn test_config_dir(appdata: AppData) {
+        fn test_config_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
             {
                 // setup
                 let path = appdata
-                    .get_entry(Entry::Config(path::PathBuf::from("")))
+                    .get_entry(Entry::Config(empty_pathbuf.clone()), is_root)
                     .expect("Could not initialize config dir.");
                 let _ = fs::remove_dir_all(path);
             }
 
             let path = appdata
-                .get_entry(Entry::Config(path::PathBuf::from("")))
+                .get_entry(Entry::Config(empty_pathbuf), is_root)
                 .expect("Could not initialize config dir.");
-            assert!(path.exists());
+
+            if is_root {
+                assert!(path.ends_with("altbinutils"));
+            } else {
+                assert!(path.ends_with("altbinutils/foo"));
+            }
         }
     }
 }
