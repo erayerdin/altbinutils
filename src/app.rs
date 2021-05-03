@@ -16,17 +16,18 @@ use crate::result::ApplicationResult;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub trait Application {
+pub trait Application<'a> {
     type ConfigType;
 
     fn run(&self) -> ApplicationResult<()>;
+    fn name() -> &'a str;
     fn config() -> ApplicationResult<Self::ConfigType>;
 }
 
 #[allow(drop_bounds)]
-pub fn invoke_application<A>(app: A) -> i32
+pub fn invoke_application<'a, A>(app: A) -> i32
 where
-    A: Application + Drop,
+    A: Application<'a> + Drop,
 {
     debug!("Running the application...");
     match app.run() {
@@ -53,7 +54,7 @@ mod tests {
     struct RunFailApp;
     struct SuccessfulApp;
 
-    impl Application for RunFailApp {
+    impl<'a> Application<'a> for RunFailApp {
         type ConfigType = EmptyConfig;
 
         fn run(&self) -> ApplicationResult<()> {
@@ -61,6 +62,10 @@ mod tests {
                 exit_code: 200,
                 message: "run failure".to_owned(),
             })
+        }
+
+        fn name() -> &'a str {
+            unimplemented!()
         }
 
         fn config() -> ApplicationResult<Self::ConfigType> {
@@ -74,11 +79,15 @@ mod tests {
         }
     }
 
-    impl Application for SuccessfulApp {
+    impl<'a> Application<'a> for SuccessfulApp {
         type ConfigType = EmptyConfig;
 
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
+        }
+
+        fn name() -> &'a str {
+            unimplemented!()
         }
 
         fn config() -> ApplicationResult<Self::ConfigType> {
