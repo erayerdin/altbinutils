@@ -13,7 +13,21 @@
 // limitations under the License.
 
 pub mod app;
+pub mod appdata;
 pub mod error;
 pub mod exit;
-pub mod paths;
 pub mod result;
+
+#[cfg(test)]
+pub mod tests {
+    use rstest::*;
+    use simple_logger;
+
+    #[fixture]
+    pub fn logger() -> bool {
+        match simple_logger::SimpleLogger::new().init() {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+}

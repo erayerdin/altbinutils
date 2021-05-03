@@ -1,6 +1,6 @@
 use log::{debug, error};
 
-use crate::result::ApplicationResult;
+use crate::{appdata, result::ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -16,17 +16,16 @@ use crate::result::ApplicationResult;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub trait Application {
-    type ConfigType;
-
+pub trait Application<'a> {
     fn run(&self) -> ApplicationResult<()>;
-    fn get_config() -> ApplicationResult<Self::ConfigType>;
+    fn name() -> &'a str;
+    fn appdata() -> ApplicationResult<appdata::AppData>;
 }
 
 #[allow(drop_bounds)]
-pub fn invoke_application<A>(app: A) -> i32
+pub fn invoke_application<'a, A>(app: A) -> i32
 where
-    A: Application + Drop,
+    A: Application<'a> + Drop,
 {
     debug!("Running the application...");
     match app.run() {
@@ -48,14 +47,10 @@ mod tests {
     use super::*;
     use rstest::*;
 
-    struct EmptyConfig;
-
     struct RunFailApp;
     struct SuccessfulApp;
 
-    impl Application for RunFailApp {
-        type ConfigType = EmptyConfig;
-
+    impl<'a> Application<'a> for RunFailApp {
         fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
@@ -63,7 +58,11 @@ mod tests {
             })
         }
 
-        fn get_config() -> ApplicationResult<Self::ConfigType> {
+        fn name() -> &'a str {
+            unimplemented!()
+        }
+
+        fn appdata() -> ApplicationResult<appdata::AppData> {
             unimplemented!()
         }
     }
@@ -74,14 +73,16 @@ mod tests {
         }
     }
 
-    impl Application for SuccessfulApp {
-        type ConfigType = EmptyConfig;
-
+    impl<'a> Application<'a> for SuccessfulApp {
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
 
-        fn get_config() -> ApplicationResult<Self::ConfigType> {
+        fn name() -> &'a str {
+            unimplemented!()
+        }
+
+        fn appdata() -> ApplicationResult<appdata::AppData> {
             unimplemented!()
         }
     }
