@@ -51,7 +51,12 @@ pub struct AppData {
 }
 
 impl AppData {
-    pub fn new(app_name: &str) -> ApplicationResult<Self> {
+    pub fn new(app_name: Option<&str>) -> ApplicationResult<Self> {
+        let app_name = match app_name {
+            Some(s) => s,
+            None => env!("CARGO_PKG_NAME"),
+        };
+
         debug!("Initializing AppData paths for {}...", app_name);
         let app_name = app_name.to_owned();
 
@@ -124,7 +129,7 @@ mod tests {
 
     #[fixture]
     fn appdata() -> AppData {
-        AppData::new("foo").expect("Could not initialize Paths.")
+        AppData::new(Some("foo")).expect("Could not initialize Paths.")
     }
 
     #[fixture]
