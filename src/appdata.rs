@@ -115,6 +115,7 @@ mod tests {
     use super::*;
     use rstest::*;
     use std::fs;
+    use crate::tests::logger;
 
     #[fixture]
     fn appdata() -> AppData {
@@ -129,7 +130,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_data_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_data_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
         {
             // setup
             let path = appdata
@@ -168,7 +169,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_cache_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_cache_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
         {
             // setup
             let path = appdata
@@ -207,7 +208,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_config_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_config_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
         {
             // setup
             let path = appdata
