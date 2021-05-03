@@ -1,6 +1,6 @@
 use log::{debug, error};
 
-use crate::result::ApplicationResult;
+use crate::{appdata, result::ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -17,11 +17,9 @@ use crate::result::ApplicationResult;
 // limitations under the License.
 
 pub trait Application<'a> {
-    type ConfigType;
-
     fn run(&self) -> ApplicationResult<()>;
     fn name() -> &'a str;
-    fn config() -> ApplicationResult<Self::ConfigType>;
+    fn appdata() -> ApplicationResult<appdata::AppData>;
 }
 
 #[allow(drop_bounds)]
@@ -49,14 +47,10 @@ mod tests {
     use super::*;
     use rstest::*;
 
-    struct EmptyConfig;
-
     struct RunFailApp;
     struct SuccessfulApp;
 
     impl<'a> Application<'a> for RunFailApp {
-        type ConfigType = EmptyConfig;
-
         fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
@@ -68,7 +62,7 @@ mod tests {
             unimplemented!()
         }
 
-        fn config() -> ApplicationResult<Self::ConfigType> {
+        fn appdata() -> ApplicationResult<appdata::AppData> {
             unimplemented!()
         }
     }
@@ -80,8 +74,6 @@ mod tests {
     }
 
     impl<'a> Application<'a> for SuccessfulApp {
-        type ConfigType = EmptyConfig;
-
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
@@ -90,7 +82,7 @@ mod tests {
             unimplemented!()
         }
 
-        fn config() -> ApplicationResult<Self::ConfigType> {
+        fn appdata() -> ApplicationResult<appdata::AppData> {
             unimplemented!()
         }
     }
