@@ -168,9 +168,9 @@ mod tests {
                 .expect("Could not initialize cache dir.");
 
             if is_root {
-                assert!(path.ends_with("altbinutils"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
             } else {
-                assert!(path.ends_with("altbinutils/foo"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
             }
         }
 
@@ -191,9 +191,9 @@ mod tests {
                 .expect("Could not initialize config dir.");
 
             if is_root {
-                assert!(path.ends_with("altbinutils"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
             } else {
-                assert!(path.ends_with("altbinutils/foo"));
+                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
             }
         }
     }
