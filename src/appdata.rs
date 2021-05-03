@@ -149,7 +149,14 @@ mod tests {
             .expect("Could not initialize data dir.");
 
         if is_root {
-            let terminal = path.file_name().expect("Could not get terminal of path.");
+            let terminal = if cfg!(target_os = "windows") {
+                path.parent()
+                    .expect("Could not get parent of path.")
+                    .file_name()
+                    .expect("Could not get terminal of path.")
+            } else {
+                path.file_name().expect("Could not get terminal of path.")
+            };
             assert_eq!(
                 terminal,
                 if cfg!(target_os = "macos") {
@@ -207,7 +214,14 @@ mod tests {
             .expect("Could not initialize cache dir.");
 
         if is_root {
-            let terminal = path.file_name().expect("Could not get terminal of path.");
+            let terminal = if cfg!(target_os = "windows") {
+                path.parent()
+                    .expect("Could not get parent of path.")
+                    .file_name()
+                    .expect("Could not get terminal of path.")
+            } else {
+                path.file_name().expect("Could not get terminal of path.")
+            };
             assert_eq!(
                 terminal,
                 if cfg!(target_os = "macos") {
@@ -265,7 +279,14 @@ mod tests {
             .expect("Could not initialize config dir.");
 
         if is_root {
-            let terminal = path.file_name().expect("Could not get terminal of path.");
+            let terminal = if cfg!(target_os = "windows") {
+                path.parent()
+                    .expect("Could not get parent of path.")
+                    .file_name()
+                    .expect("Could not get terminal of path.")
+            } else {
+                path.file_name().expect("Could not get terminal of path.")
+            };
             assert_eq!(
                 terminal,
                 if cfg!(target_os = "macos") {
