@@ -1,4 +1,4 @@
-use std::{fs, path};
+use std::path;
 
 use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
@@ -33,15 +33,6 @@ pub enum Entry {
 }
 
 impl Entry {
-    fn get_repr(&self) -> &str {
-        match self {
-            Entry::Data(_) => "data",
-            Entry::Config(_) => "config",
-            Entry::Cache(_) => "cache",
-            Entry::Home(_) => "home",
-        }
-    }
-
     fn get_path(&self) -> path::PathBuf {
         match self {
             Entry::Data(p) => p.clone(),
@@ -111,19 +102,6 @@ impl AppData {
         base_dir.push(format!("{}", self.app_name));
         trace!("base dir: {}", base_dir.to_string_lossy());
 
-        match entry {
-            Entry::Home(_) => (),
-            _ => {
-                debug!("Creating base {} directory...", entry.get_repr());
-                if let Err(e) = fs::create_dir_all(base_dir.clone()) {
-                    return Err(ApplicationError::InitError {
-                        exit_code: CommonExitCodes::StdFsFailure as i32,
-                        message: format!("Could not create base directory. {}", e),
-                    });
-                }
-            }
-        }
-
         base_dir.push(entry.get_path());
 
         Ok(base_dir)
@@ -192,6 +170,8 @@ mod tests {
     }
 
     mod test_appdata {
+        use std::fs;
+
         use super::*;
 
         #[fixture]
