@@ -113,9 +113,9 @@ impl AppData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests::logger;
     use rstest::*;
     use std::fs;
-    use crate::tests::logger;
 
     #[fixture]
     fn appdata() -> AppData {
@@ -130,7 +130,12 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_data_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_data_dir(
+        #[allow(unused_variables)] logger: bool,
+        appdata: AppData,
+        empty_pathbuf: path::PathBuf,
+        #[case] is_root: bool,
+    ) {
         {
             // setup
             let path = appdata
@@ -145,7 +150,14 @@ mod tests {
 
         if is_root {
             let terminal = path.file_name().expect("Could not get terminal of path.");
-            assert_eq!(terminal, "altbinutils");
+            assert_eq!(
+                terminal,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         } else {
             let (terminal, parent) = {
                 let parent = path.parent().expect("Could not get parent of path.");
@@ -169,7 +181,12 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_cache_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_cache_dir(
+        #[allow(unused_variables)] logger: bool,
+        appdata: AppData,
+        empty_pathbuf: path::PathBuf,
+        #[case] is_root: bool,
+    ) {
         {
             // setup
             let path = appdata
@@ -184,7 +201,14 @@ mod tests {
 
         if is_root {
             let terminal = path.file_name().expect("Could not get terminal of path.");
-            assert_eq!(terminal, "altbinutils");
+            assert_eq!(
+                terminal,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         } else {
             let (terminal, parent) = {
                 let parent = path.parent().expect("Could not get parent of path.");
@@ -208,7 +232,12 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_config_dir(#[allow(unused_variables)] logger: bool, appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+    fn test_config_dir(
+        #[allow(unused_variables)] logger: bool,
+        appdata: AppData,
+        empty_pathbuf: path::PathBuf,
+        #[case] is_root: bool,
+    ) {
         {
             // setup
             let path = appdata
@@ -223,7 +252,14 @@ mod tests {
 
         if is_root {
             let terminal = path.file_name().expect("Could not get terminal of path.");
-            assert_eq!(terminal, "altbinutils");
+            assert_eq!(
+                terminal,
+                if cfg!(target_os = "macos") {
+                    "io.github.erayerdin.altbinutils"
+                } else {
+                    "altbinutils"
+                }
+            );
         } else {
             let (terminal, parent) = {
                 let parent = path.parent().expect("Could not get parent of path.");
