@@ -112,89 +112,111 @@ impl AppData {
 mod tests {
     use super::*;
     use rstest::*;
+    use std::fs;
 
     #[fixture]
     fn appdata() -> AppData {
         AppData::new("foo").expect("Could not initialize Paths.")
     }
 
-    mod test_appdata {
-        use std::fs;
+    #[fixture]
+    fn empty_pathbuf() -> path::PathBuf {
+        path::PathBuf::from("")
+    }
 
-        use super::*;
-
-        #[fixture]
-        fn empty_pathbuf() -> path::PathBuf {
-            path::PathBuf::from("")
-        }
-
-        #[rstest]
-        #[case(true)]
-        #[case(false)]
-        fn test_data_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
-            {
-                // setup
-                let path = appdata
-                    .get_entry(Entry::Data(empty_pathbuf.clone()), is_root)
-                    .expect("Could not initialize data dir.");
-                let _ = fs::remove_dir_all(path);
-            }
-
+    #[rstest]
+    #[case(true)]
+    #[case(false)]
+    fn test_data_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+        {
+            // setup
             let path = appdata
-                .get_entry(Entry::Data(empty_pathbuf), is_root)
+                .get_entry(Entry::Data(empty_pathbuf.clone()), is_root)
                 .expect("Could not initialize data dir.");
-
-            if is_root {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
-            } else {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
-            }
+            let _ = fs::remove_dir_all(path);
         }
 
-        #[rstest]
-        #[case(true)]
-        #[case(false)]
-        fn test_cache_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
-            {
-                // setup
-                let path = appdata
-                    .get_entry(Entry::Cache(empty_pathbuf.clone()), is_root)
-                    .expect("Could not initialize cache dir.");
-                let _ = fs::remove_dir_all(path);
-            }
+        let path = appdata
+            .get_entry(Entry::Data(empty_pathbuf), is_root)
+            .expect("Could not initialize data dir.");
 
+        if is_root {
+            let terminal = path.file_name().expect("Could not get terminal of path.");
+            assert_eq!(terminal, "altbinutils");
+        } else {
+            let (terminal, parent) = {
+                let parent = path.parent().expect("Could not get parent of path.");
+                (
+                    path.file_name().expect("Could not get terminal of path."),
+                    parent.file_name().expect("Could not get terminal of path."),
+                )
+            };
+            assert_eq!(terminal, "foo");
+            assert_eq!(parent, "altbinutils");
+        }
+    }
+
+    #[rstest]
+    #[case(true)]
+    #[case(false)]
+    fn test_cache_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+        {
+            // setup
             let path = appdata
-                .get_entry(Entry::Cache(empty_pathbuf), is_root)
+                .get_entry(Entry::Cache(empty_pathbuf.clone()), is_root)
                 .expect("Could not initialize cache dir.");
-
-            if is_root {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
-            } else {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
-            }
+            let _ = fs::remove_dir_all(path);
         }
 
-        #[rstest]
-        #[case(true)]
-        #[case(false)]
-        fn test_config_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
-            {
-                // setup
-                let path = appdata
-                    .get_entry(Entry::Config(empty_pathbuf.clone()), is_root)
-                    .expect("Could not initialize config dir.");
-                let _ = fs::remove_dir_all(path);
-            }
+        let path = appdata
+            .get_entry(Entry::Cache(empty_pathbuf), is_root)
+            .expect("Could not initialize cache dir.");
 
+        if is_root {
+            let terminal = path.file_name().expect("Could not get terminal of path.");
+            assert_eq!(terminal, "altbinutils");
+        } else {
+            let (terminal, parent) = {
+                let parent = path.parent().expect("Could not get parent of path.");
+                (
+                    path.file_name().expect("Could not get terminal of path."),
+                    parent.file_name().expect("Could not get terminal of path."),
+                )
+            };
+            assert_eq!(terminal, "foo");
+            assert_eq!(parent, "altbinutils");
+        }
+    }
+
+    #[rstest]
+    #[case(true)]
+    #[case(false)]
+    fn test_config_dir(appdata: AppData, empty_pathbuf: path::PathBuf, #[case] is_root: bool) {
+        {
+            // setup
             let path = appdata
-                .get_entry(Entry::Config(empty_pathbuf), is_root)
+                .get_entry(Entry::Config(empty_pathbuf.clone()), is_root)
                 .expect("Could not initialize config dir.");
+            let _ = fs::remove_dir_all(path);
+        }
 
-            if is_root {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils")));
-            } else {
-                assert!(path.ends_with(path::PathBuf::from("altbinutils/foo")));
-            }
+        let path = appdata
+            .get_entry(Entry::Config(empty_pathbuf), is_root)
+            .expect("Could not initialize config dir.");
+
+        if is_root {
+            let terminal = path.file_name().expect("Could not get terminal of path.");
+            assert_eq!(terminal, "altbinutils");
+        } else {
+            let (terminal, parent) = {
+                let parent = path.parent().expect("Could not get parent of path.");
+                (
+                    path.file_name().expect("Could not get terminal of path."),
+                    parent.file_name().expect("Could not get terminal of path."),
+                )
+            };
+            assert_eq!(terminal, "foo");
+            assert_eq!(parent, "altbinutils");
         }
     }
 }
