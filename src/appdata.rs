@@ -160,7 +160,14 @@ mod tests {
             );
         } else {
             let (terminal, parent) = {
-                let parent = path.parent().expect("Could not get parent of path.");
+                let parent = if cfg!(target_os = "windows") {
+                    path.parent()
+                        .expect("Could not get parent of path.")
+                        .parent()
+                        .expect("Could not get parent of path.")
+                } else {
+                    path.parent().expect("Could not get parent of path.")
+                };
                 (
                     path.file_name().expect("Could not get terminal of path."),
                     parent.file_name().expect("Could not get terminal of path."),
@@ -211,7 +218,14 @@ mod tests {
             );
         } else {
             let (terminal, parent) = {
-                let parent = path.parent().expect("Could not get parent of path.");
+                let parent = if cfg!(target_os = "windows") {
+                    path.parent()
+                        .expect("Could not get parent of path.")
+                        .parent()
+                        .expect("Could not get parent of path.")
+                } else {
+                    path.parent().expect("Could not get parent of path.")
+                };
                 (
                     path.file_name().expect("Could not get terminal of path."),
                     parent.file_name().expect("Could not get terminal of path."),
@@ -262,7 +276,14 @@ mod tests {
             );
         } else {
             let (terminal, parent) = {
-                let parent = path.parent().expect("Could not get parent of path.");
+                let parent = if cfg!(target_os = "windows") {
+                    path.parent()
+                        .expect("Could not get parent of path.")
+                        .parent()
+                        .expect("Could not get parent of path.")
+                } else {
+                    path.parent().expect("Could not get parent of path.")
+                };
                 (
                     path.file_name().expect("Could not get terminal of path."),
                     parent.file_name().expect("Could not get terminal of path."),
