@@ -34,4 +34,7 @@ pub enum CommonExitCodes {
     // directories failures
     // TODO split to ProjectDirs and UserDirs
     DirectoriesFailure = -100,
+
+    // semver failures
+    SemverVersionParseVailure = -200,
 }
