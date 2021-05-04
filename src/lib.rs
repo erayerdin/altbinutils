@@ -16,6 +16,7 @@ pub mod app;
 pub mod appdata;
 pub mod error;
 pub mod exit;
+pub mod metadata;
 pub mod result;
 
 #[cfg(test)]
