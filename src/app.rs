@@ -20,7 +20,10 @@ use crate::{metadata::Metadata, result::ApplicationResult};
 pub trait Application {
     fn run(&self) -> ApplicationResult<()>;
     fn metadata(&self) -> ApplicationResult<Metadata> {
-        Metadata::default()
+        debug!("Generating Metadata...");
+        let r = Metadata::default();
+        trace!("Metadata Result: {:?}", r);
+        r
     }
 }
 
