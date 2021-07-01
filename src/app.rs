@@ -17,16 +17,16 @@ use crate::{metadata::Metadata, result::ApplicationResult};
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub trait Application<'a> {
+pub trait Application {
     fn run(&self) -> ApplicationResult<()>;
     fn metadata(&self) -> ApplicationResult<Metadata> {
         Metadata::default()
     }
 }
 
-pub fn invoke_application<'a, A>(app: A) -> i32
+pub fn invoke_application<A>(app: A) -> i32
 where
-    A: Application<'a>,
+    A: Application,
 {
     debug!("Initializing the application...");
     setup_panic!(Metadata {
@@ -59,7 +59,7 @@ mod tests {
     struct RunFailApp;
     struct SuccessfulApp;
 
-    impl<'a> Application<'a> for RunFailApp {
+    impl Application for RunFailApp {
         fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
@@ -74,7 +74,7 @@ mod tests {
         }
     }
 
-    impl<'a> Application<'a> for SuccessfulApp {
+    impl Application for SuccessfulApp {
         fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
