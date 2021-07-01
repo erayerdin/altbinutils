@@ -29,11 +29,13 @@
 /// exit codes are reserved for any application utilizing this.
 pub enum CommonExitCodes {
     // std failures
-    StdFsFailure = -2,
+    GenericFsFailure = -2,
+    StdFsFailure = -3,
 
     // directories failures
-    // TODO split to ProjectDirs and UserDirs
-    DirectoriesFailure = -100,
+    GenericDirectoriesFailure = -100,
+    DirectoriesProjectDirsFailure = -101,
+    DirectoriesUserDirsFailure = -102,
 
     // semver failures
     SemverVersionParseFailure = -200,
