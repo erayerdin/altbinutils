@@ -1,7 +1,7 @@
 use human_panic::setup_panic;
 use log::{debug, error};
 
-use crate::{metadata::Metadata, result::ApplicationResult};
+use crate::{appdata::AppData, metadata::Metadata, result::ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -23,6 +23,15 @@ pub trait Application {
         debug!("Generating Metadata...");
         let r = Metadata::default();
         trace!("Metadata Result: {:?}", r);
+        r
+    }
+    fn appdata(&self) -> ApplicationResult<AppData> {
+        debug!("Generating AppData...");
+        let r = AppData::new(match self.metadata() {
+            Ok(m) => Some(m.name),
+            Err(e) => return Err(e),
+        });
+        trace!("AppData Result: {:?}", r);
         r
     }
 }

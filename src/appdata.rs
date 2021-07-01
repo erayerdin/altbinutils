@@ -44,6 +44,7 @@ impl Entry {
 }
 
 /// Paths of an app.
+#[derive(Debug)]
 pub struct AppData {
     app_name: String,
     project_dirs: ProjectDirs,
@@ -51,10 +52,10 @@ pub struct AppData {
 }
 
 impl AppData {
-    pub fn new(app_name: Option<&str>) -> ApplicationResult<Self> {
-        let app_name = match app_name {
-            Some(s) => s,
-            None => env!("CARGO_PKG_NAME"),
+    pub fn new<S: Into<String>>(app_name: Option<S>) -> ApplicationResult<Self> {
+        let app_name: String = match app_name {
+            Some(s) => s.into(),
+            None => env!("CARGO_PKG_NAME").into(),
         };
 
         debug!("Initializing AppData paths for {}...", app_name);
