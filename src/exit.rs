@@ -29,7 +29,7 @@
 /// exit codes are reserved for any application utilizing this.
 pub enum CommonExitCodes {
     // std failures
-    GenericFsFailure = -2,
+    GenericStdFailure = -2,
     StdFsFailure = -3,
 
     // directories failures
