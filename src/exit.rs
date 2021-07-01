@@ -36,5 +36,5 @@ pub enum CommonExitCodes {
     DirectoriesFailure = -100,
 
     // semver failures
-    SemverVersionParseVailure = -200,
+    SemverVersionParseFailure = -200,
 }

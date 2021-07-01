@@ -49,7 +49,7 @@ impl Metadata {
             Ok(v) => v,
             Err(e) => {
                 return Err(ApplicationError::InitError {
-                    exit_code: CommonExitCodes::SemverVersionParseVailure as i32,
+                    exit_code: CommonExitCodes::SemverVersionParseFailure as i32,
                     message: format!("Could not parse version of application. {}", e),
                 });
             }
