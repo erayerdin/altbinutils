@@ -1,7 +1,15 @@
+use figment::{
+    providers::{Format, Toml},
+    Figment,
+};
 use human_panic::setup_panic;
 use log::{debug, error};
 
-use crate::{appdata::AppData, metadata::Metadata, result::ApplicationResult};
+use crate::{
+    appdata::{AppData, Entry},
+    metadata::Metadata,
+    result::ApplicationResult,
+};
 
 // Copyright 2021 Eray Erdin
 //
@@ -33,6 +41,28 @@ pub trait Application {
         });
         trace!("AppData Result: {:?}", r);
         r
+    }
+    fn config(&self) -> ApplicationResult<Figment> {
+        debug!("Generating Figment...");
+
+        let metadata = match self.metadata() {
+            Ok(m) => m,
+            Err(e) => return Err(e),
+        };
+        let appdata = match self.appdata() {
+            Ok(a) => a,
+            Err(e) => return Err(e),
+        };
+
+        let appdata_config_path = appdata.get_entry(Entry::Config("config.toml".into()), false);
+        let home_config_path = appdata.get_entry(
+            Entry::Home(format!("{}.config.toml", metadata.name).into()),
+            false,
+        );
+
+        Ok(Figment::new()
+            .merge(Toml::file(appdata_config_path))
+            .merge(Toml::file(home_config_path)))
     }
 }
 
