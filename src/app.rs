@@ -1,7 +1,7 @@
 use human_panic::setup_panic;
 use log::{debug, error};
 
-use crate::result::ApplicationResult;
+use crate::{metadata::Metadata, result::ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -19,6 +19,9 @@ use crate::result::ApplicationResult;
 
 pub trait Application<'a> {
     fn run(&self) -> ApplicationResult<()>;
+    fn metadata(&self) -> ApplicationResult<Metadata> {
+        Metadata::default()
+    }
 }
 
 pub fn invoke_application<'a, A>(app: A) -> i32
