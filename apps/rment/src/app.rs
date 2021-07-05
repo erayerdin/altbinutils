@@ -19,6 +19,9 @@ pub struct RmentApp;
 impl Application for RmentApp {
     fn run(&self) -> altbinutils::result::ApplicationResult<()> {
         println!("Hello, world!");
-        Ok(())
+        Err(ApplicationError::RunError {
+            exit_code: 1,
+            message: "".into(),
+        })
     }
 }

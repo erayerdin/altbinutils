@@ -6,3 +6,7 @@ description = "Removes files and directories."
 
 [dependencies]
 altbinutils = { path = "../.." }
+
+[dev-dependencies]
+rstest = "0.10.0"
+assert_cmd = "1.0.7"
