@@ -6,6 +6,7 @@ edition = "2018"
 description = "Alternative Binary Utilities"
 
 [dependencies]
+clap = "2.33.3"
 directories = "3.0.1"
 figment = { version = "0.10.6", features = ["toml"] }
 human-panic = "1.0.3"

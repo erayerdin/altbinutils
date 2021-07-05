@@ -1,3 +1,4 @@
+use clap::App as Clapp;
 use figment::{
     providers::{Format, Toml},
     Figment,
@@ -27,6 +28,12 @@ use crate::{
 
 pub trait Application {
     fn run(&self) -> ApplicationResult<()>;
+    fn clapp(&self) -> Clapp {
+        app_from_crate!().global_settings(&[
+            clap::AppSettings::DeriveDisplayOrder,
+            clap::AppSettings::VersionlessSubcommands,
+        ])
+    }
     fn metadata(&self) -> ApplicationResult<Metadata> {
         debug!("Generating Metadata...");
         let r = Metadata::default();
