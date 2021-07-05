@@ -14,6 +14,8 @@
 
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate async_trait;
 
 pub mod app;
 pub mod appdata;
@@ -29,7 +31,7 @@ pub mod tests {
     use simple_logger;
 
     #[fixture]
-    pub fn logger() -> bool {
+    pub async fn logger() -> bool {
         match simple_logger::SimpleLogger::new().init() {
             Ok(_) => true,
             Err(_) => false,
