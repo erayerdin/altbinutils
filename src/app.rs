@@ -25,16 +25,15 @@ use crate::{
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[async_trait]
 pub trait Application {
-    async fn run(&self) -> ApplicationResult<()>;
+    fn run(&self) -> ApplicationResult<()>;
     fn metadata(&self) -> ApplicationResult<Metadata> {
         debug!("Generating Metadata...");
         let r = Metadata::default();
         trace!("Metadata Result: {:?}", r);
         r
     }
-    async fn appdata(&self) -> ApplicationResult<AppData> {
+    fn appdata(&self) -> ApplicationResult<AppData> {
         debug!("Generating AppData...");
         let r = AppData::new(match self.metadata() {
             Ok(m) => Some(m.name),
@@ -43,27 +42,23 @@ pub trait Application {
         trace!("AppData Result: {:?}", r);
         r
     }
-    async fn config(&self) -> ApplicationResult<Figment> {
+    fn config(&self) -> ApplicationResult<Figment> {
         debug!("Generating Figment...");
 
         let metadata = match self.metadata() {
             Ok(m) => m,
             Err(e) => return Err(e),
         };
-        let appdata = match self.appdata().await {
+        let appdata = match self.appdata() {
             Ok(a) => a,
             Err(e) => return Err(e),
         };
 
-        let appdata_config_path = appdata
-            .get_entry(Entry::Config("config.toml".into()), false)
-            .await;
-        let home_config_path = appdata
-            .get_entry(
-                Entry::Home(format!("{}.config.toml", metadata.name).into()),
-                false,
-            )
-            .await;
+        let appdata_config_path = appdata.get_entry(Entry::Config("config.toml".into()), false);
+        let home_config_path = appdata.get_entry(
+            Entry::Home(format!("{}.config.toml", metadata.name).into()),
+            false,
+        );
 
         Ok(Figment::new()
             .merge(Toml::file(appdata_config_path))
@@ -71,7 +66,7 @@ pub trait Application {
     }
 }
 
-pub async fn invoke_application<A>(app: A) -> i32
+pub fn invoke_application<A>(app: A) -> i32
 where
     A: Application,
 {
@@ -84,14 +79,14 @@ where
     });
 
     debug!("Running the application...");
-    match app.run().await {
+    match app.run() {
         Ok(_) => {
             debug!("Finished running the application successfully.");
             0
         }
         Err(e) => {
             error!("Failed to run the application.");
-            e.get_exit_code().await
+            e.get_exit_code()
         }
     }
 }
@@ -106,9 +101,8 @@ mod tests {
     struct RunFailApp;
     struct SuccessfulApp;
 
-    #[async_trait]
     impl Application for RunFailApp {
-        async fn run(&self) -> ApplicationResult<()> {
+        fn run(&self) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
@@ -122,9 +116,8 @@ mod tests {
         }
     }
 
-    #[async_trait]
-    impl<'a> Application for SuccessfulApp {
-        async fn run(&self) -> ApplicationResult<()> {
+    impl Application for SuccessfulApp {
+        fn run(&self) -> ApplicationResult<()> {
             Ok(())
         }
     }
@@ -136,18 +129,18 @@ mod tests {
     }
 
     #[rstest]
-    async fn test_run_fail() {
+    fn test_run_fail() {
         let app = RunFailApp;
         let exit_code = invoke_application(app);
 
-        assert_eq!(exit_code.await, 200);
+        assert_eq!(exit_code, 200);
     }
 
     #[rstest]
-    async fn test_successful_app() {
+    fn test_successful_app() {
         let app = SuccessfulApp;
         let exit_code = invoke_application(app);
 
-        assert_eq!(exit_code.await, 0);
+        assert_eq!(exit_code, 0);
     }
 }
