@@ -1,7 +1,4 @@
-use std::process;
-
 use altbinutils::app::Application;
-use rment::app::RmentApp;
 
 // Copyright 2021 Eray Erdin
 //
@@ -17,11 +14,11 @@ use rment::app::RmentApp;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    let r = RmentApp.run();
+pub struct RmentApp;
 
-    match r {
-        Ok(_) => process::exit(0),
-        Err(e) => process::exit(e.get_exit_code()),
+impl Application for RmentApp {
+    fn run(&self) -> altbinutils::result::ApplicationResult<()> {
+        println!("Hello, world!");
+        Ok(())
     }
 }

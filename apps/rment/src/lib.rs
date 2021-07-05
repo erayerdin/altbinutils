@@ -1,8 +1,3 @@
-use std::process;
-
-use altbinutils::app::Application;
-use rment::app::RmentApp;
-
 // Copyright 2021 Eray Erdin
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +12,4 @@ use rment::app::RmentApp;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    let r = RmentApp.run();
-
-    match r {
-        Ok(_) => process::exit(0),
-        Err(e) => process::exit(e.get_exit_code()),
-    }
-}
+pub mod app;

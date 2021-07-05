@@ -1,8 +1,8 @@
 [package]
 name = "rment"
-version = "0.1.0"
+version = "2021.2.1-alpha.1"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Removes files and directories."
 
 [dependencies]
+altbinutils = { path = "../.." }
