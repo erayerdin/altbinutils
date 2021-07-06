@@ -1,3 +1,5 @@
+use std::fmt;
+
 use log::{debug, trace};
 use semver::Version;
 
@@ -26,7 +28,12 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    pub fn new(name: String, version: Version, description: String, authors: Vec<String>) -> Self {
+    pub fn new<S: Into<String> + fmt::Display + fmt::Debug>(
+        name: S,
+        version: Version,
+        description: S,
+        authors: Vec<S>,
+    ) -> Self {
         debug!("Initializing metadata...");
         trace!("name: {}", name);
         trace!("version: {}", version);
@@ -34,10 +41,10 @@ impl Metadata {
         trace!("authors: {:?}", authors);
 
         Self {
-            name,
+            name: name.into(),
             version,
-            description,
-            authors,
+            description: description.into(),
+            authors: authors.into_iter().map(|v| v.into()).collect(),
         }
     }
 
