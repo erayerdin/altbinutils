@@ -1,4 +1,4 @@
-use clap::{App as Clapp, ArgMatches};
+use clap::{App as Clapp, AppSettings, ArgMatches};
 use figment::{
     providers::{Format, Toml},
     Figment,
@@ -100,6 +100,11 @@ where
         }
     }
 }
+
+pub const GLOBAL_CLAP_SETTINGS: [AppSettings; 2] = [
+    AppSettings::VersionlessSubcommands,
+    AppSettings::DeriveDisplayOrder,
+];
 
 #[cfg(test)]
 mod tests {

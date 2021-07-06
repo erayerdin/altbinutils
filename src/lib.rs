@@ -15,6 +15,7 @@
 #[macro_use]
 extern crate log;
 #[macro_use]
+#[cfg(test)]
 extern crate clap;
 
 pub mod app;
