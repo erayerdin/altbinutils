@@ -34,12 +34,7 @@ pub trait Application {
         appdata: AppData,
         config: Figment,
     ) -> ApplicationResult<()>;
-    fn clapp(&self) -> Clapp {
-        app_from_crate!().global_settings(&[
-            clap::AppSettings::DeriveDisplayOrder,
-            clap::AppSettings::VersionlessSubcommands,
-        ])
-    }
+    fn clapp(&self) -> Clapp;
     fn metadata(&self) -> ApplicationResult<Metadata> {
         debug!("Generating Metadata...");
         let r = Metadata::default();
@@ -123,6 +118,10 @@ mod tests {
                 message: "run failure".to_owned(),
             })
         }
+
+        fn clapp(&self) -> Clapp {
+            app_from_crate!()
+        }
     }
 
     impl Drop for RunFailApp {
@@ -134,6 +133,10 @@ mod tests {
     impl Application for SuccessfulApp {
         fn run(&self, _: ArgMatches, _: Metadata, _: AppData, _: Figment) -> ApplicationResult<()> {
             Ok(())
+        }
+
+        fn clapp(&self) -> Clapp {
+            app_from_crate!()
         }
     }
 
