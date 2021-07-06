@@ -17,7 +17,7 @@ use crate::{error::ApplicationError, exit::CommonExitCodes, result::ApplicationR
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Metadata {
     pub name: String,
     pub version: Version,

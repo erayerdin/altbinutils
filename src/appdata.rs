@@ -44,7 +44,7 @@ impl Entry {
 }
 
 /// Paths of an app.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AppData {
     app_name: String,
     project_dirs: ProjectDirs,

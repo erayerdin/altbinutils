@@ -1,4 +1,4 @@
-use clap::App as Clapp;
+use clap::{App as Clapp, ArgMatches};
 use figment::{
     providers::{Format, Toml},
     Figment,
@@ -27,7 +27,13 @@ use crate::{
 // limitations under the License.
 
 pub trait Application {
-    fn run(&self) -> ApplicationResult<()>;
+    fn run(
+        &self,
+        matches: ArgMatches,
+        metadata: Metadata,
+        appdata: AppData,
+        config: Figment,
+    ) -> ApplicationResult<()>;
     fn clapp(&self) -> Clapp {
         app_from_crate!().global_settings(&[
             clap::AppSettings::DeriveDisplayOrder,
@@ -40,26 +46,14 @@ pub trait Application {
         trace!("Metadata Result: {:?}", r);
         r
     }
-    fn appdata(&self) -> ApplicationResult<AppData> {
+    fn appdata(&self, metadata: Metadata) -> ApplicationResult<AppData> {
         debug!("Generating AppData...");
-        let r = AppData::new(match self.metadata() {
-            Ok(m) => Some(m.name),
-            Err(e) => return Err(e),
-        });
+        let r = AppData::new(Some(metadata.name));
         trace!("AppData Result: {:?}", r);
         r
     }
-    fn config(&self) -> ApplicationResult<Figment> {
+    fn config(&self, metadata: Metadata, appdata: AppData) -> ApplicationResult<Figment> {
         debug!("Generating Figment...");
-
-        let metadata = match self.metadata() {
-            Ok(m) => m,
-            Err(e) => return Err(e),
-        };
-        let appdata = match self.appdata() {
-            Ok(a) => a,
-            Err(e) => return Err(e),
-        };
 
         let appdata_config_path = appdata.get_entry(Entry::Config("config.toml".into()), false);
         let home_config_path = appdata.get_entry(
@@ -85,8 +79,22 @@ where
         homepage: "".into()
     });
 
+    let app_matches = app.clapp().get_matches();
+    let metadata = match app.metadata() {
+        Ok(m) => m,
+        Err(e) => return e.get_exit_code(),
+    };
+    let appdata = match app.appdata(metadata.clone()) {
+        Ok(a) => a,
+        Err(e) => return e.get_exit_code(),
+    };
+    let config = match app.config(metadata.clone(), appdata.clone()) {
+        Ok(f) => f,
+        Err(e) => return e.get_exit_code(),
+    };
+
     debug!("Running the application...");
-    match app.run() {
+    match app.run(app_matches, metadata, appdata, config) {
         Ok(_) => {
             debug!("Finished running the application successfully.");
             0
@@ -109,7 +117,7 @@ mod tests {
     struct SuccessfulApp;
 
     impl Application for RunFailApp {
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches, _: Metadata, _: AppData, _: Figment) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
@@ -124,7 +132,7 @@ mod tests {
     }
 
     impl Application for SuccessfulApp {
-        fn run(&self) -> ApplicationResult<()> {
+        fn run(&self, _: ArgMatches, _: Metadata, _: AppData, _: Figment) -> ApplicationResult<()> {
             Ok(())
         }
     }
