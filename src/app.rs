@@ -29,7 +29,7 @@ use crate::{
 pub trait Application {
     fn run(
         &self,
-        matches: ArgMatches,
+        matches: ArgMatches<'_>,
         metadata: Metadata,
         appdata: AppData,
         config: Figment,
@@ -64,7 +64,7 @@ pub trait Application {
 
 pub fn invoke_application<A>(app: A) -> i32
 where
-    A: Application,
+    A: Application + 'static,
 {
     debug!("Initializing the application...");
     setup_panic!(Metadata {
