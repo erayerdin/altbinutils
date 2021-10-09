@@ -51,11 +51,15 @@ pub trait Application {
     async fn config(&self, metadata: Metadata, appdata: AppData) -> ApplicationResult<Figment> {
         debug!("Generating Figment...");
 
-        let appdata_config_path = appdata.get_entry(Entry::Config("config.toml".into()), false);
-        let home_config_path = appdata.get_entry(
-            Entry::Home(format!("{}.config.toml", metadata.name).into()),
-            false,
-        );
+        let appdata_config_path = appdata
+            .get_entry(Entry::Config("config.toml".into()), false)
+            .await;
+        let home_config_path = appdata
+            .get_entry(
+                Entry::Home(format!("{}.config.toml", metadata.name).into()),
+                false,
+            )
+            .await;
 
         Ok(Figment::new()
             .merge(Toml::file(appdata_config_path))
