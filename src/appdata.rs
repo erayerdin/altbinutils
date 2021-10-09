@@ -127,8 +127,8 @@ impl AppData {
 mod tests {
     use super::*;
     use crate::tests::logger;
+    use async_std::fs;
     use rstest::*;
-    use std::fs;
 
     #[fixture]
     fn appdata() -> AppData {
