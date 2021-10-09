@@ -79,15 +79,15 @@ pub async fn invoke_application(app: impl Application + Send + Sync) -> i32 {
     let app_matches = app.clapp().await.get_matches();
     let metadata = match app.metadata().await {
         Ok(m) => m,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
     let appdata = match app.appdata(metadata.clone()).await {
         Ok(a) => a,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
     let config = match app.config(metadata.clone(), appdata.clone()).await {
         Ok(f) => f,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
 
     debug!("Running the application...");
@@ -98,7 +98,7 @@ pub async fn invoke_application(app: impl Application + Send + Sync) -> i32 {
         }
         Err(e) => {
             error!("Failed to run the application.");
-            e.get_exit_code()
+            e.get_exit_code().await
         }
     }
 }

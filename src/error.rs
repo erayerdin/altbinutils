@@ -20,7 +20,7 @@ pub enum ApplicationError {
 }
 
 impl ApplicationError {
-    pub fn get_exit_code(&self) -> i32 {
+    pub async fn get_exit_code(&self) -> i32 {
         match self {
             ApplicationError::InitError { exit_code, .. } => exit_code.clone(),
             ApplicationError::RunError { exit_code, .. } => exit_code.clone(),
