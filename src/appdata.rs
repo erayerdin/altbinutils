@@ -1,4 +1,4 @@
-use std::path;
+use async_std::path;
 
 use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
@@ -98,13 +98,15 @@ impl AppData {
         trace!("entry: {:?}", entry);
         trace!("is root: {:?}", is_root);
 
-        let mut base_dir = match entry {
-            Entry::Data(_) => self.project_dirs.data_local_dir(),
-            Entry::Config(_) => self.project_dirs.config_dir(),
-            Entry::Cache(_) => self.project_dirs.cache_dir(),
-            Entry::Home(_) => self.user_dirs.home_dir(),
-        }
-        .to_path_buf();
+        let mut base_dir = path::PathBuf::from(
+            match entry {
+                Entry::Data(_) => self.project_dirs.data_local_dir(),
+                Entry::Config(_) => self.project_dirs.config_dir(),
+                Entry::Cache(_) => self.project_dirs.cache_dir(),
+                Entry::Home(_) => self.user_dirs.home_dir(),
+            }
+            .to_path_buf(),
+        );
 
         base_dir.push(entry.get_path().await);
 
