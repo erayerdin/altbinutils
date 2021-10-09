@@ -28,7 +28,7 @@ impl ApplicationError {
         }
     }
 
-    pub fn get_message(&self) -> String {
+    pub async fn get_message(&self) -> String {
         match self {
             ApplicationError::InitError { message, .. } => message.clone(),
             ApplicationError::RunError { message, .. } => message.clone(),
