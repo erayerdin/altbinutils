@@ -26,35 +26,40 @@ use crate::{
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[async_trait]
 pub trait Application {
-    fn run(
+    async fn run(
         &self,
         matches: ArgMatches<'_>,
         metadata: Metadata,
         appdata: AppData,
         config: Figment,
     ) -> ApplicationResult<()>;
-    fn clapp(&self) -> Clapp;
-    fn metadata(&self) -> ApplicationResult<Metadata> {
+    async fn clapp(&self) -> Clapp;
+    async fn metadata(&self) -> ApplicationResult<Metadata> {
         debug!("Generating Metadata...");
         let r = Metadata::default();
         trace!("Metadata Result: {:?}", r);
         r
     }
-    fn appdata(&self, metadata: Metadata) -> ApplicationResult<AppData> {
+    async fn appdata(&self, metadata: Metadata) -> ApplicationResult<AppData> {
         debug!("Generating AppData...");
         let r = AppData::new(Some(metadata.name));
         trace!("AppData Result: {:?}", r);
         r
     }
-    fn config(&self, metadata: Metadata, appdata: AppData) -> ApplicationResult<Figment> {
+    async fn config(&self, metadata: Metadata, appdata: AppData) -> ApplicationResult<Figment> {
         debug!("Generating Figment...");
 
-        let appdata_config_path = appdata.get_entry(Entry::Config("config.toml".into()), false);
-        let home_config_path = appdata.get_entry(
-            Entry::Home(format!("{}.config.toml", metadata.name).into()),
-            false,
-        );
+        let appdata_config_path = appdata
+            .get_entry(Entry::Config("config.toml".into()), false)
+            .await;
+        let home_config_path = appdata
+            .get_entry(
+                Entry::Home(format!("{}.config.toml", metadata.name).into()),
+                false,
+            )
+            .await;
 
         Ok(Figment::new()
             .merge(Toml::file(appdata_config_path))
@@ -62,10 +67,7 @@ pub trait Application {
     }
 }
 
-pub fn invoke_application<A>(app: A) -> i32
-where
-    A: Application + 'static,
-{
+pub async fn invoke_application(app: impl Application + Send + Sync) -> i32 {
     debug!("Initializing the application...");
     setup_panic!(Metadata {
         name: env!("CARGO_PKG_NAME").into(),
@@ -74,29 +76,29 @@ where
         homepage: "".into()
     });
 
-    let app_matches = app.clapp().get_matches();
-    let metadata = match app.metadata() {
+    let app_matches = app.clapp().await.get_matches();
+    let metadata = match app.metadata().await {
         Ok(m) => m,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
-    let appdata = match app.appdata(metadata.clone()) {
+    let appdata = match app.appdata(metadata.clone()).await {
         Ok(a) => a,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
-    let config = match app.config(metadata.clone(), appdata.clone()) {
+    let config = match app.config(metadata.clone(), appdata.clone()).await {
         Ok(f) => f,
-        Err(e) => return e.get_exit_code(),
+        Err(e) => return e.get_exit_code().await,
     };
 
     debug!("Running the application...");
-    match app.run(app_matches, metadata, appdata, config) {
+    match app.run(app_matches, metadata, appdata, config).await {
         Ok(_) => {
             debug!("Finished running the application successfully.");
             0
         }
         Err(e) => {
             error!("Failed to run the application.");
-            e.get_exit_code()
+            e.get_exit_code().await
         }
     }
 }
@@ -116,15 +118,22 @@ mod tests {
     struct RunFailApp;
     struct SuccessfulApp;
 
+    #[async_trait]
     impl Application for RunFailApp {
-        fn run(&self, _: ArgMatches, _: Metadata, _: AppData, _: Figment) -> ApplicationResult<()> {
+        async fn run(
+            &self,
+            _: ArgMatches<'_>,
+            _: Metadata,
+            _: AppData,
+            _: Figment,
+        ) -> ApplicationResult<()> {
             Err(ApplicationError::RunError {
                 exit_code: 200,
                 message: "run failure".to_owned(),
             })
         }
 
-        fn clapp(&self) -> Clapp {
+        async fn clapp(&self) -> Clapp {
             app_from_crate!()
         }
     }
@@ -135,12 +144,19 @@ mod tests {
         }
     }
 
+    #[async_trait]
     impl Application for SuccessfulApp {
-        fn run(&self, _: ArgMatches, _: Metadata, _: AppData, _: Figment) -> ApplicationResult<()> {
+        async fn run(
+            &self,
+            _: ArgMatches<'_>,
+            _: Metadata,
+            _: AppData,
+            _: Figment,
+        ) -> ApplicationResult<()> {
             Ok(())
         }
 
-        fn clapp(&self) -> Clapp {
+        async fn clapp(&self) -> Clapp {
             app_from_crate!()
         }
     }
@@ -152,17 +168,17 @@ mod tests {
     }
 
     #[rstest]
-    fn test_run_fail() {
+    async fn test_run_fail() {
         let app = RunFailApp;
-        let exit_code = invoke_application(app);
+        let exit_code = invoke_application(app).await;
 
         assert_eq!(exit_code, 200);
     }
 
     #[rstest]
-    fn test_successful_app() {
+    async fn test_successful_app() {
         let app = SuccessfulApp;
-        let exit_code = invoke_application(app);
+        let exit_code = invoke_application(app).await;
 
         assert_eq!(exit_code, 0);
     }

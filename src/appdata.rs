@@ -1,4 +1,4 @@
-use std::path;
+use async_std::path;
 
 use directories::{ProjectDirs, UserDirs};
 use log::{debug, trace};
@@ -33,7 +33,7 @@ pub enum Entry {
 }
 
 impl Entry {
-    fn get_path(&self) -> path::PathBuf {
+    async fn get_path(&self) -> path::PathBuf {
         match self {
             Entry::Data(p) => p.clone(),
             Entry::Config(p) => p.clone(),
@@ -93,20 +93,22 @@ impl AppData {
     /// - **entry**: The type of entry.
     /// - **is_root**: If `is_root`, then `altbinutils` directory will be returned, otherwise
     /// the application's appdata directory will be returned.
-    pub fn get_entry(&self, entry: Entry, is_root: bool) -> path::PathBuf {
+    pub async fn get_entry(&self, entry: Entry, is_root: bool) -> path::PathBuf {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
         trace!("is root: {:?}", is_root);
 
-        let mut base_dir = match entry {
-            Entry::Data(_) => self.project_dirs.data_local_dir(),
-            Entry::Config(_) => self.project_dirs.config_dir(),
-            Entry::Cache(_) => self.project_dirs.cache_dir(),
-            Entry::Home(_) => self.user_dirs.home_dir(),
-        }
-        .to_path_buf();
+        let mut base_dir = path::PathBuf::from(
+            match entry {
+                Entry::Data(_) => self.project_dirs.data_local_dir(),
+                Entry::Config(_) => self.project_dirs.config_dir(),
+                Entry::Cache(_) => self.project_dirs.cache_dir(),
+                Entry::Home(_) => self.user_dirs.home_dir(),
+            }
+            .to_path_buf(),
+        );
 
-        base_dir.push(entry.get_path());
+        base_dir.push(entry.get_path().await);
 
         if is_root {
             return base_dir;
@@ -115,7 +117,7 @@ impl AppData {
         base_dir.push(format!("{}", self.app_name));
         trace!("base dir: {}", base_dir.to_string_lossy());
 
-        base_dir.push(entry.get_path());
+        base_dir.push(entry.get_path().await);
 
         base_dir
     }
@@ -125,8 +127,8 @@ impl AppData {
 mod tests {
     use super::*;
     use crate::tests::logger;
+    use async_std::fs;
     use rstest::*;
-    use std::fs;
 
     #[fixture]
     fn appdata() -> AppData {
@@ -141,7 +143,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_data_dir(
+    async fn test_data_dir(
         #[allow(unused_variables)] logger: bool,
         appdata: AppData,
         empty_pathbuf: path::PathBuf,
@@ -149,11 +151,13 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata.get_entry(Entry::Data(empty_pathbuf.clone()), is_root);
+            let path = appdata
+                .get_entry(Entry::Data(empty_pathbuf.clone()), is_root)
+                .await;
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata.get_entry(Entry::Data(empty_pathbuf), is_root);
+        let path = appdata.get_entry(Entry::Data(empty_pathbuf), is_root).await;
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
@@ -202,7 +206,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_cache_dir(
+    async fn test_cache_dir(
         #[allow(unused_variables)] logger: bool,
         appdata: AppData,
         empty_pathbuf: path::PathBuf,
@@ -210,11 +214,15 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata.get_entry(Entry::Cache(empty_pathbuf.clone()), is_root);
+            let path = appdata
+                .get_entry(Entry::Cache(empty_pathbuf.clone()), is_root)
+                .await;
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata.get_entry(Entry::Cache(empty_pathbuf), is_root);
+        let path = appdata
+            .get_entry(Entry::Cache(empty_pathbuf), is_root)
+            .await;
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
@@ -263,7 +271,7 @@ mod tests {
     #[rstest]
     #[case(true)]
     #[case(false)]
-    fn test_config_dir(
+    async fn test_config_dir(
         #[allow(unused_variables)] logger: bool,
         appdata: AppData,
         empty_pathbuf: path::PathBuf,
@@ -271,11 +279,15 @@ mod tests {
     ) {
         {
             // setup
-            let path = appdata.get_entry(Entry::Config(empty_pathbuf.clone()), is_root);
+            let path = appdata
+                .get_entry(Entry::Config(empty_pathbuf.clone()), is_root)
+                .await;
             let _ = fs::remove_dir_all(path);
         }
 
-        let path = appdata.get_entry(Entry::Config(empty_pathbuf), is_root);
+        let path = appdata
+            .get_entry(Entry::Config(empty_pathbuf), is_root)
+            .await;
 
         if is_root {
             let terminal = if cfg!(target_os = "windows") {
