@@ -1,0 +1,13 @@
+[package]
+name = "app_lse"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+
+[dependencies.altbinutils]
+path = ".."
+
+[[bin]]
+name = "lse"
+path = "src/main.rs"
