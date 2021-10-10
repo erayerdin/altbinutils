@@ -53,6 +53,9 @@ pub struct AppData {
 
 impl AppData {
     pub fn new<S: Into<String>>(app_name: Option<S>) -> ApplicationResult<Self> {
+        // for some reason, turning this method to async gives a lot of headaches
+        // idk what to do when any constructor in this method is to return a future
+        // but for now, let it stay as it is
         let app_name: String = match app_name {
             Some(s) => s.into(),
             None => env!("CARGO_PKG_NAME").into(),
