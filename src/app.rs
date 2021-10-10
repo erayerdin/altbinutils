@@ -1,4 +1,4 @@
-use clap::{App as Clapp, AppSettings, ArgMatches};
+use clap::{AppSettings, ArgMatches};
 use figment::{
     providers::{Format, Toml},
     Figment,
@@ -25,6 +25,8 @@ use crate::{
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+pub type Clapp<'a, 'b> = clap::App<'a, 'b>;
 
 #[async_trait]
 pub trait Application {
