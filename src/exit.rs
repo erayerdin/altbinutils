@@ -16,8 +16,9 @@
 ///
 /// **1. Conventions**
 ///
-/// All exit codes should end with `Failure` suffix and all exit codes must
-/// be negative `i32`. Positives are meant to be used by applications.
+/// All exit codes should end with `Failure` suffix and all exit codes in
+/// `altbinutils` crate must be negative `i32`. Positives are meant to be
+/// used by applications.
 ///
 /// **1.1 Exit Code Ranges**
 ///
@@ -25,8 +26,9 @@
 /// for each dependency and their submodules, except the first, which is between
 /// -2 and -99.
 ///
-/// No positive integer is and will be used by CommonExitCodes enum. Positive `i32`
-/// exit codes are reserved for any application utilizing this.
+/// No positive integer is and will be used in `altbinutils` crate in CommonExitCodes
+/// enum. Positive `i32` exit codes are reserved for any application, which is a
+/// workspace member, utilizing `altbinutils` crate.
 pub enum CommonExitCodes {
     // std failures
     GenericStdFailure = -2,
