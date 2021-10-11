@@ -36,18 +36,8 @@ pub trait Application {
         config: Figment,
     ) -> ApplicationResult<()>;
     async fn clapp(&self) -> Clapp;
-    async fn metadata(&self) -> ApplicationResult<Metadata> {
-        debug!("Generating Metadata...");
-        let r = Metadata::default();
-        trace!("Metadata Result: {:?}", r);
-        r
-    }
-    async fn appdata(&self, metadata: Metadata) -> ApplicationResult<AppData> {
-        debug!("Generating AppData...");
-        let r = AppData::new(Some(metadata.name));
-        trace!("AppData Result: {:?}", r);
-        r
-    }
+    async fn metadata(&self) -> ApplicationResult<Metadata>;
+    async fn appdata(&self, metadata: Metadata) -> ApplicationResult<AppData>;
     async fn config(&self, metadata: Metadata, appdata: AppData) -> ApplicationResult<Figment> {
         debug!("Generating Figment...");
 
@@ -110,7 +100,7 @@ pub const GLOBAL_CLAP_SETTINGS: [AppSettings; 2] = [
 
 #[cfg(test)]
 mod tests {
-    use crate::error::ApplicationError;
+    use crate::{appdata, error::ApplicationError, metadata};
 
     use super::*;
     use rstest::*;
@@ -136,6 +126,14 @@ mod tests {
         async fn clapp(&self) -> Clapp {
             app_from_crate!()
         }
+
+        async fn metadata(&self) -> ApplicationResult<Metadata> {
+            metadata!()
+        }
+
+        async fn appdata(&self, _: Metadata) -> ApplicationResult<AppData> {
+            appdata!()
+        }
     }
 
     impl Drop for RunFailApp {
@@ -158,6 +156,14 @@ mod tests {
 
         async fn clapp(&self) -> Clapp {
             app_from_crate!()
+        }
+
+        async fn metadata(&self) -> ApplicationResult<Metadata> {
+            metadata!()
+        }
+
+        async fn appdata(&self, _: Metadata) -> ApplicationResult<AppData> {
+            appdata!()
         }
     }
 

@@ -1,9 +1,6 @@
 use async_std::path;
 
 use directories::{ProjectDirs, UserDirs};
-use log::{debug, trace};
-
-use crate::{error::ApplicationError, exit::CommonExitCodes, result::ApplicationResult};
 
 // Copyright 2021 Eray Erdin
 //
@@ -18,10 +15,6 @@ use crate::{error::ApplicationError, exit::CommonExitCodes, result::ApplicationR
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-const QUALIFIER: &str = "io.github";
-const ORGANIZATION: &str = "erayerdin";
-const APPLICATION: &str = "altbinutils";
 
 /// An entry in application directory.
 #[derive(Debug)]
@@ -43,6 +36,44 @@ impl Entry {
     }
 }
 
+#[macro_export]
+macro_rules! appdata {
+    () => {{
+        (|| {
+            use crate::{error::ApplicationError, exit::CommonExitCodes};
+            use directories::{ProjectDirs, UserDirs};
+
+            const QUALIFIER: &str = "io.github";
+            const ORGANIZATION: &str = "erayerdin";
+            const APPLICATION: &str = "altbinutils";
+
+            let app_name = env!("CARGO_PKG_NAME").to_owned();
+
+            let project_dirs = match ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION) {
+                Some(d) => d,
+                None => {
+                    return Err(ApplicationError::InitError {
+                        exit_code: CommonExitCodes::DirectoriesProjectDirsFailure as i32,
+                        message: "Could not initialize ProjectDirs.".to_owned(),
+                    })
+                }
+            };
+
+            let user_dirs = match UserDirs::new() {
+                Some(d) => d,
+                None => {
+                    return Err(ApplicationError::InitError {
+                        exit_code: CommonExitCodes::DirectoriesUserDirsFailure as i32,
+                        message: "Could not initialize UserDirs.".to_owned(),
+                    })
+                }
+            };
+
+            Ok(AppData::new(app_name, project_dirs, user_dirs))
+        })()
+    }};
+}
+
 /// Paths of an app.
 #[derive(Debug, Clone)]
 pub struct AppData {
@@ -52,43 +83,16 @@ pub struct AppData {
 }
 
 impl AppData {
-    pub fn new<S: Into<String>>(app_name: Option<S>) -> ApplicationResult<Self> {
-        // for some reason, turning this method to async gives a lot of headaches
-        // idk what to do when any constructor in this method is to return a future
-        // but for now, let it stay as it is
-        let app_name: String = match app_name {
-            Some(s) => s.into(),
-            None => env!("CARGO_PKG_NAME").into(),
-        };
-
-        debug!("Initializing AppData paths for {}...", app_name);
-        let app_name = app_name.to_owned();
-
-        let project_dirs = match ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION) {
-            Some(d) => d,
-            None => {
-                return Err(ApplicationError::InitError {
-                    exit_code: CommonExitCodes::DirectoriesProjectDirsFailure as i32,
-                    message: "Could not initialize ProjectDirs.".to_owned(),
-                })
-            }
-        };
-
-        let user_dirs = match UserDirs::new() {
-            Some(d) => d,
-            None => {
-                return Err(ApplicationError::InitError {
-                    exit_code: CommonExitCodes::DirectoriesUserDirsFailure as i32,
-                    message: "Could not initialize UserDirs.".to_owned(),
-                })
-            }
-        };
-
-        Ok(Self {
+    pub fn new(app_name: String, project_dirs: ProjectDirs, user_dirs: UserDirs) -> Self {
+        debug!("Initializing AppData...");
+        trace!("app_name: {}", app_name);
+        trace!("project_dirs: {:?}", project_dirs);
+        trace!("user_dirs: {:?}", user_dirs);
+        Self {
             app_name,
             project_dirs,
             user_dirs,
-        })
+        }
     }
 
     /// Gets a specific entry from appdata directories.
@@ -99,7 +103,7 @@ impl AppData {
     pub async fn get_entry(&self, entry: Entry, is_root: bool) -> path::PathBuf {
         debug!("Getting entry...");
         trace!("entry: {:?}", entry);
-        trace!("is root: {:?}", is_root);
+        trace!("is_root: {:?}", is_root);
 
         let mut base_dir = path::PathBuf::from(
             match entry {
@@ -133,14 +137,29 @@ mod tests {
     use async_std::fs;
     use rstest::*;
 
-    #[fixture]
-    fn appdata() -> AppData {
-        AppData::new(Some("foo")).expect("Could not initialize Paths.")
-    }
+    const QUALIFIER: &str = "io.github";
+    const ORGANIZATION: &str = "erayerdin";
+    const APPLICATION: &str = "altbinutils";
 
     #[fixture]
     fn empty_pathbuf() -> path::PathBuf {
         path::PathBuf::from("")
+    }
+
+    #[fixture]
+    fn project_dirs() -> ProjectDirs {
+        ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
+            .expect("Could not initialize ProjectDirs.")
+    }
+
+    #[fixture]
+    fn user_dirs() -> UserDirs {
+        UserDirs::new().expect("Could not initialize UserDirs.")
+    }
+
+    #[fixture]
+    fn appdata(project_dirs: ProjectDirs, user_dirs: UserDirs) -> AppData {
+        AppData::new("foo".to_owned(), project_dirs, user_dirs)
     }
 
     #[rstest]
