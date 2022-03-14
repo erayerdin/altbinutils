@@ -6,21 +6,3 @@ edition = "2018"
 description = "Alternative Binary Utilities"
 
 [dependencies]
-clap = "2.33.3"
-directories = "4.0.1"
-human-panic = "1.0.3"
-log = "0.4.14"
-semver = "1.0.3"
-async-trait = "0.1.51"
-
-[dependencies.figment]
-version = "0.10.6"
-features = ["toml"]
-
-[dependencies.async-std]
-version = "1.10.0"
-features = ["attributes"]
-
-[dev-dependencies]
-rstest = "0.11.0"
-simple_logger = "1.11.0"
